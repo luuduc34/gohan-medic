@@ -11,7 +11,7 @@ const routes = [
   },
   {
     path: "/catalogue",
-    name: "Catalogue",
+    name: "CataloguePage",
     component: CataloguePage,  // Page de succès après connexion
   },
   {
