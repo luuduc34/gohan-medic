@@ -1,12 +1,15 @@
 <template>
   <h1 class="catalogue-title">Catalogue</h1>
-  <div class="catalogue">
+  <div class="wrapper">
+    <div class="catalogue">
     <MedicamentCard
       v-for="medicament in medicaments"
       :key="medicament.id"
       :medicament="medicament"
     />
   </div>
+  </div>
+  
 </template>
 
 <script>
@@ -45,12 +48,16 @@ export default {
   letter-spacing: 1px;
 }
 
+.wrapper {
+}
+
 /* Styles pour le catalogue */
 .catalogue {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 25px;
-  padding: 30px;
+  margin: auto;
+  max-width: 1200px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
 }
 
 /* Réduction de la taille des cartes */

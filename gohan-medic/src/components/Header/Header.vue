@@ -29,7 +29,10 @@
   export default {
     name: 'AppHeader',
     data() {
-      return { showDropdown: false };
+      return { 
+        showDropdown: false,
+        isAuthenticated: false, 
+      };
     },
     methods: {
     async checkAuth() {

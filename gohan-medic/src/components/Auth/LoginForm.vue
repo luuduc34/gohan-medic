@@ -3,7 +3,7 @@
       <h2>Connexion</h2>
       <div class="form-group">
         <label for="email">Email :</label>
-        <input v-model="email" id="email" type="email" placeholder="Email" required />
+        <input v-model="email" class="email" type="email" placeholder="Email" required />
       </div>
       <div class="form-group">
         <label for="password">Mot de passe :</label>

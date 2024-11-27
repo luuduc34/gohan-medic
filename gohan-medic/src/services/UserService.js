@@ -36,14 +36,31 @@ const UserService = {
 
   // Connexion avec email et mot de passe
   async loginWithEmail(email, password) {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    if (error) throw error;
-    return data;
-  },
+    try {
+      // Loggez les valeurs d'e-mail et mot de passe pour être sûr de ce qui est passé
+      console.log("Tentative de connexion avec :", email.trim(), password.trim());
+      
+      // Connexion avec Supabase
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+  
+      if (error) {
+        console.error("Erreur lors de la connexion :", error);
+        alert("Erreur : " + error.message);
+        return null;
+      }
+  
+      console.log("Connexion réussie :", data);
+      return data;
+    } catch (err) {
+      console.error("Erreur inattendue :", err);
+      alert("Une erreur inattendue est survenue.");
+      return null;
+    }
+  }
+  ,
 
   // Vérifier l'état de la connexion de l'utilisateur
   async checkAuthStatus() {
