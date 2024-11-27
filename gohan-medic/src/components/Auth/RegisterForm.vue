@@ -1,100 +1,118 @@
 <template>
-    <form @submit.prevent="handleRegister" class="register-form">
-      <h2>Inscription</h2>
-      <div class="form-group">
-        <label for="nom">Nom :</label>
-        <input v-model="nom" id="nom" type="text" placeholder="Nom" required />
-      </div>
-      <div class="form-group">
-        <label for="prenom">Prénom :</label>
-        <input v-model="prenom" id="prenom" type="text" placeholder="Prénom" required />
-      </div>
-      <div class="form-group">
-        <label for="email">Email :</label>
-        <input v-model="email" id="email" type="email" placeholder="Email" required />
-      </div>
-      <div class="form-group">
-        <label for="password">Mot de passe :</label>
-        <input v-model="password" id="password" type="password" placeholder="Mot de passe" required />
-      </div>
-      <button type="submit" class="submit-button">S'inscrire</button>
-    </form>
-  </template>
-  
-  <script>
-  import UserService from '@/services/UserService';
-  
-  export default {
-    data() {
-      return {
-        nom: "",
-        prenom: "",
-        email: "",
-        password: "",
-      };
-    },
-    methods: {
-      async handleRegister() {
-        try {
-          await UserService.registerWithEmail(this.email, this.password, this.nom, this.prenom);
-          alert("Inscription réussie !");
-          this.$router.push('/');
-        } catch (error) {
-          alert("Erreur : " + error.message);
-        }
-      },
-    },
-  };
-  </script>
+  <form @submit.prevent="handleRegister" class="register-form">
+    <h2>Inscription</h2>
+    <div class="form-group">
+      <label for="nom">Nom :</label>
+      <input v-model="nom" id="nom" type="text" placeholder="Nom" required />
+    </div>
+    <div class="form-group">
+      <label for="prenom">Prénom :</label>
+      <input v-model="prenom" id="prenom" type="text" placeholder="Prénom" required />
+    </div>
+    <div class="form-group">
+      <label for="email">Email :</label>
+      <input v-model="email" id="email" type="email" placeholder="Email" required />
+    </div>
+    <div class="form-group">
+      <label for="password">Mot de passe :</label>
+      <input v-model="password" id="password" type="password" placeholder="Mot de passe" required />
+    </div>
+    <button type="submit" class="submit-button">S'inscrire</button>
+  </form>
+</template>
 
-  <style scoped>
+<script>
+import UserService from '@/services/UserService';
+
+export default {
+  data() {
+    return {
+      nom: "",
+      prenom: "",
+      email: "",
+      password: "",
+    };
+  },
+  methods: {
+    async handleRegister() {
+      try {
+        await UserService.registerWithEmail(this.email, this.password, this.nom, this.prenom);
+        alert("Inscription réussie !");
+        this.$router.push('/');
+      } catch (error) {
+        alert("Erreur : " + error.message);
+      }
+    },
+  },
+};
+</script>
+
+<style scoped>
 .register-form {
   display: flex;
   flex-direction: column;
-  width: 300px;
-  margin: 30px;
+  width: 100%;
+  max-width: 400px;
+  margin: 30px auto;
   padding: 20px;
   border: 1px solid #ccc;
   border-radius: 8px;
-  background-color: #f9f9f9;
+  background-color: #fff;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
 h2 {
   text-align: center;
   margin-bottom: 20px;
+  font-size: 24px;
+  font-weight: bold;
+  color: #333;
 }
 
 .form-group {
   display: flex;
   flex-direction: column;
-  margin-bottom: 15px;
+  margin-bottom: 20px;
 }
 
 label {
-  margin-bottom: 5px;
-  font-size: 14px;
+  margin-bottom: 8px;
+  font-size: 16px;
+  color: #555;
 }
 
 input {
-  padding: 10px;
-  font-size: 14px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+  padding: 12px;
+  font-size: 16px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background-color: #f9f9f9;
+  margin-top: 5px;
+}
+
+input:focus {
+  border-color: #007bff;
+  background-color: #fff;
+  outline: none;
 }
 
 .submit-button {
-  padding: 10px;
+  padding: 12px;
   font-size: 16px;
   color: white;
   background-color: #007bff;
   border: none;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
-  margin-top: 10px;
-  align-self: center;
+  margin-top: 15px;
+  transition: background-color 0.3s ease;
 }
 
 .submit-button:hover {
   background-color: #0056b3;
+}
+
+.submit-button:active {
+  background-color: #004085;
 }
 </style>
