@@ -1,40 +1,40 @@
 <template>
-  <form @submit.prevent="handleLogin" class="login-form">
-    <h2>Connexion</h2>
-    <div class="form-group">
-      <label for="email">Email :</label>
-      <input v-model="email" id="email" type="email" placeholder="Email" required />
-    </div>
-    <div class="form-group">
-      <label for="password">Mot de passe :</label>
-      <input v-model="password" type="password" placeholder="Mot de passe" required />
-    </div>
-    <button type="submit" class="submit-button">Se connecter</button>
-  </form>
-</template>
-
-<script>
-import UserService from '@/services/UserService';
-
-export default {
-  data() {
-    return {
-      email: "",
-      password: "",
-    };
-  },
-  methods: {
-    async handleLogin() {
-      try {
-        await UserService.loginWithEmail(this.email, this.password); // connexion avec Supabase(DB)
-        this.$router.push('/');  // Redirection vers la page d'accueil ou une page de succès
-      } catch (error) {
-        alert("Erreur : " + error.message);
-      }
+    <form @submit.prevent="handleLogin"  class="login-form">
+      <h2>Connexion</h2>
+      <div class="form-group">
+        <label for="email">Email :</label>
+        <input v-model="email" id="email" type="email" placeholder="Email" required />
+      </div>
+      <div class="form-group">
+        <label for="password">Mot de passe :</label>
+        <input v-model="password"  type="password" placeholder="Mot de passe" required />
+      </div>
+      <button type="submit" class="submit-button">Se connecter</button>
+    </form>
+  </template>
+  
+  <script>
+  import UserService from '@/services/UserService';
+  
+  export default {
+    data() {
+      return {
+        email: "",
+        password: "",
+      };
     },
-  },
-};
-</script>
+    methods: {
+      async handleLogin() {
+        try {
+          await UserService.loginWithEmail(this.email, this.password); // connexion avec supabase(DB)
+          this.$router.push('/');  // Redirection vers la page de succès
+        } catch (error) {
+          alert("Erreur : " + error.message);
+        }
+      },
+    },
+  };
+  </script>
 
 <style scoped>
 .login-form {
