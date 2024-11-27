@@ -8,8 +8,9 @@
     "lint": "vue-cli-service lint"
   },
   "dependencies": {
-    "vue": "^3.2.13",
-    "vue-router": "^4.0.3"
+    "@supabase/supabase-js": "^2.46.1",
+    "vue": "^3.5.13",
+    "vue-router": "^4.5.0"
   },
   "devDependencies": {
     "@vue/cli-plugin-eslint": "~5.0.0",
@@ -37,5 +38,9 @@
     "last 2 versions",
     "not dead",
     "not ie 11"
-  ]
+  ],
+  "description": "```\r npm install\r ```",
+  "main": "index.js",
+  "author": "",
+  "license": "ISC"
 }
