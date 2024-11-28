@@ -4,22 +4,22 @@
       @mouseover="hover = true"
       @mouseleave="hover = false"
     >
-      <img :src="medicament.image" alt="Image du médicament" />
+      <img :src="product.image" alt="Image du produit" />
       <div class="product-info">
-        <h3>{{ medicament.nom }}</h3>
-        <span>{{ medicament.prix }} €</span>
+        <h3>{{ product.nom }}</h3>
+        <span>{{ product.prix }} €</span>
       </div>
       <div v-if="hover" class="product-description">
-        <p>{{ medicament.description }}</p>
+        <p>{{ product.description }}</p>
       </div>
     </div>
   </template>
   
   <script>
   export default {
-    name: "MedicamentCard",
+    name: "ProductCard",
     props: {
-      medicament: {
+      product: {
         type: Object,
         required: true,
       },

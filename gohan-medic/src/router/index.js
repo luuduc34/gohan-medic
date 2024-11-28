@@ -2,8 +2,14 @@ import { createRouter, createWebHistory } from 'vue-router'
 
 import AuthPage from '@/views/AuthPage.vue'
 import CataloguePage from '@/views/CataloguePage.vue'
+import HomePage from '@/views/HomePage.vue'
 
 const routes = [
+  {
+    path: "/Home",
+    name: "HomePage",
+    component: HomePage,  // Page de succès après connexion
+  },
   {
     path: "/auth",
     name: "Auth",
@@ -16,7 +22,7 @@ const routes = [
   },
   {
     path: "/",
-    redirect: "/catalogue", // Redirige par défaut vers /catalogue
+    redirect: "/Home", // Redirige par défaut vers /HomePage
   }
 ]
 

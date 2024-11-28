@@ -2,10 +2,10 @@
   <h1 class="catalogue-title">Catalogue</h1>
   <div class="wrapper">
     <div class="catalogue">
-    <MedicamentCard
-      v-for="medicament in medicaments"
-      :key="medicament.id"
-      :medicament="medicament"
+    <ProductCard
+      v-for="product in product"
+      :key="product.id"
+      :product="product"
     />
   </div>
   </div>
@@ -13,21 +13,21 @@
 </template>
 
 <script>
-import MedicamentCard from "@/components/Medicament/MedicamentCard.vue"
-import * as MedicamentService from '../services/MedicamentService';
+import ProductCard from "@/components/Product/ProductCard.vue"
+import * as ProductService from '../services/ProductService'
 
 export default {
   name: "CataloguePage",
   components: {
-    MedicamentCard,
+    ProductCard,
   },
   data() {
     return {
-      medicaments: [],
+      product: [],
     };
   },
   async created() {
-    this.medicaments = await MedicamentService.fetchMedicaments(); // Récupérer les médicaments depuis Supabase
+    this.product = await ProductService.fetchProducts(); // Récupérer les médicaments depuis Supabase
   },
 };
 </script>
