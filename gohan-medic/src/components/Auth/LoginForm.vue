@@ -14,7 +14,8 @@
   </template>
   
   <script>
-  import UserService from '@/services/UserService';
+  import { loginWithEmail } from '@/services/UserService';
+  import { useUserStore } from '@/stores/UserStore';
   
   export default {
     data() {
@@ -24,17 +25,28 @@
       };
     },
     methods: {
-      async handleLogin() {
-        try {
-          await UserService.loginWithEmail(this.email, this.password); // connexion avec supabase(DB)
-          this.$router.push('/');  // Redirection vers la page de succès
-        } catch (error) {
-          alert("Erreur : " + error.message);
+    async handleLogin() {
+      try {
+        // Connexion de l'utilisateur avec les informations fournies
+        const user = await loginWithEmail(this.email, this.password);
+
+        if (user) {
+          // Récupérer le store Pinia pour mettre à jour l'état global de l'utilisateur
+          const userStore = useUserStore();
+          userStore.fetchUser(user); // Mise à jour de l'état de l'utilisateur dans le store
+
+          // Redirection vers la page d'accueil après la connexion
+          this.$router.push('/');
+        } else {
+          alert("Échec de l'authentification. Veuillez vérifier vos identifiants.");
         }
-      },
+      } catch (error) {
+        alert("Erreur : " + error.message);
+      }
     },
-  };
-  </script>
+  },
+};
+</script>
 
 <style scoped>
 .login-form {

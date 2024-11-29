@@ -1,7 +1,7 @@
 import { supabase } from "@/lib/supabaseClient";
 
-export async function fetchProducts() {
-    const { data: produit, error } = await supabase
+  export async function fetchProducts() {
+    const { data: product, error } = await supabase
     .from('product')
     .select('*');
   
@@ -10,14 +10,14 @@ export async function fetchProducts() {
       return [];
     }
 
-    console.log("Produits récupérés :", produit); // Log les produits récupérés
+    console.log("Produits récupérés :", product); // Log les produits récupérés
   
-    return produit;
+    return product;
   }  
 
   export async function fetchProductById(productId) {
     const { data, error } = await supabase
-      .from('products')
+      .from('product')
       .select('*')
       .eq('id', productId)
       .single();

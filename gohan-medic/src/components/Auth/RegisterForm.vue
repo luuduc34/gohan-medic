@@ -22,7 +22,7 @@
 </template>
 
 <script>
-import UserService from '@/services/UserService';
+import { registerWithEmail } from '@/services/UserService';
 
 export default {
   data() {
@@ -36,7 +36,7 @@ export default {
   methods: {
     async handleRegister() {
       try {
-        await UserService.registerWithEmail(this.email, this.password, this.nom, this.prenom);
+        await registerWithEmail(this.email, this.password, this.nom, this.prenom);
         alert("Inscription réussie !");
         this.$router.push('/');
       } catch (error) {
