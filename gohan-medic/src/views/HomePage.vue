@@ -9,7 +9,7 @@
         <h2>Promotions du mois</h2>
         <div class="product-list">
           <div v-for="promo in promotions" :key="promo.id" class="product-card">
-            <img :src="promo.image" alt="Produit" />
+            <img :src="promo.picture" alt="Produit" />
             <h3>{{ promo.name }}</h3>
             <p>{{ promo.price }} €</p>
           </div>
@@ -19,11 +19,11 @@
       <section class="new-products">
         <h2>Nouveaux produits</h2>
         <div class="product-list">
-          <div v-for="product in newProducts" :key="product.id" class="product-card">
-            <img :src="product.image" alt="Produit" />
-            <h3>{{ product.name }}</h3>
-            <p>{{ product.price }} €</p>
-          </div>
+          <ProductCard
+            v-for="product in newProducts"
+            :key="product.id"
+            :product="product"
+          />
         </div>
       </section>
     </div>
@@ -31,7 +31,7 @@
   
   <script>
   import { fetchPromotions } from '../services/PromotionService';
-  import { fetchProducts } from '../services/ProductService';
+  import { fetchProducts } from '@/services/ProductService';
   
   export default {
     name: "HomePage",
@@ -73,5 +73,3 @@
     text-align: center;
   }
   </style>
-  
-  

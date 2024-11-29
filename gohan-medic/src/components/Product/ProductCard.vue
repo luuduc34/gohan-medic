@@ -4,10 +4,10 @@
       @mouseover="hover = true"
       @mouseleave="hover = false"
     >
-      <img :src="product.image" alt="Image du produit" />
+      <img :src="product.picture" alt="Image du produit" />
       <div class="product-info">
-        <h3>{{ product.nom }}</h3>
-        <span>{{ product.prix }} €</span>
+        <h3>{{ product.name }}</h3>
+        <span>{{ product.price }} €</span>
       </div>
       <div v-if="hover" class="product-description">
         <p>{{ product.description }}</p>

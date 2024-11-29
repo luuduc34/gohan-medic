@@ -1,10 +1,9 @@
 <template>
   <h1 class="catalogue-title">Catalogue</h1>
-  <h2>test</h2>
   <div class="wrapper">
     <div class="catalogue">
     <ProductCard
-      v-for="product in product"
+      v-for="product in products"
       :key="product.id"
       :product="product"
     />
@@ -15,7 +14,8 @@
 
 <script>
 import ProductCard from "@/components/Product/ProductCard.vue"
-import * as ProductService from '../services/ProductService'
+import { fetchProducts } from "@/services/ProductService";
+
 
 export default {
   name: "CataloguePage",
@@ -24,11 +24,11 @@ export default {
   },
   data() {
     return {
-      product: [],
+      products: [],
     };
   },
   async created() {
-    this.product = await ProductService.fetchProducts(); // Récupérer les médicaments depuis Supabase
+    this.products = await fetchProducts(); // Récupérer les médicaments depuis Supabase
   },
 };
 </script>
