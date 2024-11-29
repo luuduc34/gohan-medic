@@ -4,7 +4,8 @@
       @mouseover="hover = true"
       @mouseleave="hover = false"
     >
-      <img :src="product.picture" alt="Image du produit" />
+      <img :src="product.picture" alt="Image du produit"
+      loading="lazy"/>
       <div class="product-info">
         <h3>{{ product.name }}</h3>
         <span>{{ product.price }} €</span>

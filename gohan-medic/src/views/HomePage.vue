@@ -1,75 +1,87 @@
 <template>
-    <div class="home">
-      <header class="hero-section">
-        <h1>Bienvenue sur Gohan-Medic</h1>
-        <p>Vos solutions pharmaceutiques en ligne.</p>
-      </header>
-  
-      <section class="promotions">
-        <h2>Promotions du mois</h2>
-        <div class="product-list">
-          <div v-for="promo in promotions" :key="promo.id" class="product-card">
-            <img :src="promo.picture" alt="Produit" />
-            <h3>{{ promo.name }}</h3>
-            <p>{{ promo.price }} €</p>
-          </div>
-        </div>
-      </section>
-  
-      <section class="new-products">
-        <h2>Nouveaux produits</h2>
-        <div class="product-list">
-          <ProductCard
-            v-for="product in newProducts"
-            :key="product.id"
-            :product="product"
-          />
-        </div>
-      </section>
-    </div>
-  </template>
-  
-  <script>
-  import { fetchPromotions } from '../services/PromotionService';
-  import { fetchProducts } from '@/services/ProductService';
-  
-  export default {
-    name: "HomePage",
+  <div class="home">
+    <!-- Section héroïque -->
+    <header class="hero-section">
+      <h1>Bienvenue sur Gohan-Medic</h1>
+      <p>Vos solutions pharmaceutiques en ligne.</p>
+    </header>
+
+    <!-- Liste des produits -->
+    <section class="product-list-section">
+      <h2>Nos produits</h2>
+      <div class="product-list">
+        <ProductCard
+          v-for="product in products"
+          :key="product.id"
+          :product="product"
+        />
+      </div>
+    </section>
+  </div>
+</template>
+
+<script>
+import { fetchProducts } from "@/services/ProductService";
+import ProductCard from "@/components/Product/ProductCard.vue";
+
+export default {
+  name: "HomePage",
+  components: {
+    ProductCard,
+  },
   data() {
     return {
-      promotions: [],
-      newProducts: [],
+      products: [], // Liste des produits récupérés
     };
   },
   async created() {
     try {
-      this.promotions = await fetchPromotions();
-      this.newProducts = await fetchProducts();
+      // Récupération des produits (limité à 5)
+      const allProducts = await fetchProducts();
+      this.products = allProducts.slice(0, 5); // On limite à 5 produits
     } catch (error) {
-      console.error('Erreur lors du chargement des données :', error.message);
+      console.error("Erreur lors du chargement des produits :", error.message);
     }
   },
-  };
-  </script>
-  
-  <style>
-  /* Styles de base pour une page Home */
-  .hero-section {
-    text-align: center;
-    padding: 20px;
-    background-color: #f0f8ff;
-  }
-  
-  .product-list {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 20px;
-  }
-  
-  .product-card {
-    border: 1px solid #ccc;
-    padding: 10px;
-    width: 200px;
-    text-align: center;
-  }
-  </style>
+};
+</script>
+
+<style scoped>
+/* Section héroïque */
+.hero-section {
+  text-align: center;
+  padding: 40px 20px;
+  background: linear-gradient(120deg, #d9e6f2, #f0f8ff);
+  color: #333;
+}
+
+.hero-section h1 {
+  font-size: 3rem;
+  font-weight: bold;
+}
+
+.hero-section p {
+  font-size: 1.25rem;
+  margin-top: 10px;
+}
+
+/* Liste des produits */
+.product-list-section {
+  margin: 40px auto;
+  max-width: 1200px;
+}
+
+.product-list-section h2 {
+  font-size: 2rem;
+  color: #007bff;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.product-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+  padding: 0 20px;
+}
+</style>
