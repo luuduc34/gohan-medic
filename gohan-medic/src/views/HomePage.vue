@@ -2,7 +2,6 @@
     <div class="home">
       <header class="hero-section">
         <h1>Bienvenue sur Gohan-Medic</h1>
-        <p>Vos solutions pharmaceutiques en ligne.</p>
       </header>
   
       <section class="promotions">

@@ -1,19 +1,24 @@
 import { supabase } from "@/lib/supabaseClient";
 
-  export async function fetchProducts() {
-    const { data: product, error } = await supabase
-    .from('product')
-    .select('*');
+export async function fetchProducts(limit = null) {
+  let query = supabase.from('product').select('*');
   
-    if (error) {
-      console.error("Erreur lors de la récupération des produits :", error);
-      return [];
-    }
+  // Si une limite est spécifiée, on l'applique
+  if (limit) {
+    query = query.limit(limit);
+  }
 
-    console.log("Produits récupérés :", product); // Log les produits récupérés
+  const { data: product, error } = await query;
   
-    return product;
-  }  
+  if (error) {
+    console.error("Erreur lors de la récupération des produits :", error);
+    return [];
+  }
+
+  console.log("Produits récupérés :", product); // Log les produits récupérés
+
+  return product;
+}  
 
   export async function fetchProductById(productId) {
     const { data, error } = await supabase
@@ -24,4 +29,3 @@ import { supabase } from "@/lib/supabaseClient";
     if (error) throw error;
     return data;
   }
-  
