@@ -7,33 +7,48 @@
       <img :src="product.picture" alt="Image du produit"
       loading="lazy"/>
       <div class="product-info">
-        <h3>{{ product.name }}</h3>
+      <h3>{{ product.name }}</h3>
+      <template v-if="product.is_promotion">
+        <span class="original-price">{{ product.price }} €</span>
+        <span class="discounted-price">{{ calculateDiscountedPrice(product) }} €</span>
+      </template>
+      <template v-else>
         <span>{{ product.price }} €</span>
-      </div>
-      <div v-if="hover" class="product-description">
-        <p>{{ product.description }}</p>
-      </div>
+      </template>
     </div>
-  </template>
+    <div v-if="hover" class="product-description">
+      <p>{{ product.description }}</p>
+    </div>
+  </div>
+</template>
   
-  <script>
-  export default {
-    name: "ProductCard",
-    props: {
-      product: {
-        type: Object,
-        required: true,
-      },
+<script>
+export default {
+  name: "ProductCard",
+  props: {
+    product: {
+      type: Object,
+      required: true,
     },
-    data() {
-      return {
-        hover: false, // Gère l'état de survol
-      };
+  },
+  data() {
+    return {
+      hover: false, // État pour gérer le survol
+    };
+  },
+  methods: {
+    calculateDiscountedPrice(product) {
+      // Vérifiez si `percentage` est défini dans `product.promotion`
+      if (product.promotion && product.promotion.percentage) {
+        return (product.price * (1 - product.promotion.percentage / 100)).toFixed(2);
+      }
+      return product.price;
     },
-  };
-  </script>
+  },
+};
+</script>
   
-  <style scoped>
+<style scoped>
   .product-card {
     position: relative;
     background: #fff;
@@ -71,4 +86,4 @@
     text-align: justify;
     border-top: 1px solid #ddd;
   }
-  </style>
+</style>

@@ -38,7 +38,7 @@ export default {
     try {
       // Récupération des produits (limité à 5)
       const allProducts = await fetchProducts();
-      this.products = allProducts.slice(0, 5); // On limite à 5 produits
+      this.products = allProducts.slice(0, 10); // On limite à 5 produits
     } catch (error) {
       console.error("Erreur lors du chargement des produits :", error.message);
     }

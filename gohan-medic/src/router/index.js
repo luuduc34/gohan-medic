@@ -4,6 +4,7 @@ import AuthPage from '@/views/AuthPage.vue'
 import CataloguePage from '@/views/CataloguePage.vue'
 import HomePage from '@/views/HomePage.vue'
 import { supabase } from '@/lib/supabaseClient'
+import PromotionPage from '@/views/PromotionPage.vue'
 
 let localUser;
 
@@ -25,6 +26,11 @@ const routes = [
     component: CataloguePage,  // Page du catalogue
     // meta: {requiresAuth: true}
     // meta: {requiresAdmin: true}
+  },
+  {
+    path: "/Promotion",
+    name: "PromotionPage",
+    component: PromotionPage,  // Page promotion
   },
   {
     path: "/",
