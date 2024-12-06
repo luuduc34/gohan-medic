@@ -1,18 +1,24 @@
 import { supabase } from "@/lib/supabaseClient";
 
-  export async function fetchProducts() {
-    const { data: product, error } = await supabase
-    .from('product')
-    .select('*');
+export async function fetchProducts(limit = null) {
+  let query = supabase.from('product').select('*');
   
-    if (error) {
-      console.error("Erreur lors de la récupération des produits :", error);
-      return [];
-    }
+  // Si une limite est spécifiée, on l'applique
+  if (limit) {
+    query = query.limit(limit);
+  }
 
-    console.log("Produits récupérés :", product); // Log les produits récupérés
-    return product;
-  }  
+  const { data: product, error } = await query;
+  
+  if (error) {
+    console.error("Erreur lors de la récupération des produits :", error);
+    return [];
+  }
+
+  console.log("Produits récupérés :", product); // Log les produits récupérés
+
+  return product;
+}  
 
   export async function fetchProductById(productId) {
     const { data, error } = await supabase
@@ -22,19 +28,4 @@ import { supabase } from "@/lib/supabaseClient";
       .single();
     if (error) throw error;
     return data;
-  }
-  
-  export async function fetchPromotions() {
-    const { data: promotions, error } = await supabase
-      .from("product") // Assurez-vous que la table utilisée est correcte
-      .select("*")
-      .eq("is_promotion", true); // Filtrer les produits en promotion
-  
-    if (error) {
-      console.error("Erreur lors de la récupération des promotions :", error);
-      return [];
-    }
-  
-    console.log("Produits en promotion récupérés :", promotions);
-    return promotions;
   }

@@ -49,9 +49,6 @@ export default {
   letter-spacing: 1px;
 }
 
-.wrapper {
-}
-
 /* Styles pour le catalogue */
 .catalogue {
   margin: auto;
