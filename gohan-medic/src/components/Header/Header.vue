@@ -17,10 +17,10 @@
       >
         <!-- Affiche le menu déroulant au survol -->
         <!-- Cache le menu déroulant lorsque la souris quitte -->
-      
+
         <!-- Affiche "Compte" si l'utilisateur est connecté, sinon "Se connecter" -->
         <button class="connect-btn">
-          {{ isAuthenticated ? 'Compte' : 'Se connecter' }}
+          {{ isAuthenticated ? "Compte" : "Se connecter" }}
         </button>
 
         <!-- Menu affiché conditionnellement lorsque showDropdown est true -->
@@ -31,9 +31,12 @@
           <!-- Bouton de connexion visible si l'utilisateur n'est pas connecté -->
           <button v-else @click="goToAuth">Se connecter</button>
 
-          <hr /> <!-- Ligne de séparation -->
-          <button>Mes commandes</button> <!-- Accès aux commandes utilisateur -->
-          <button>Mes favoris</button> <!-- Accès aux favoris utilisateur -->
+          <hr />
+          <!-- Ligne de séparation -->
+          <button>Mes commandes</button>
+          <!-- Accès aux commandes utilisateur -->
+          <button>Mes favoris</button>
+          <!-- Accès aux favoris utilisateur -->
         </div>
       </div>
     </div>
@@ -45,6 +48,7 @@
       </div>
       <div class="menu" :class="{ show: isOpen }">
         <button @click="goToCat">Catalogue</button>
+        <button @click="goToProm">Promotion</button>
         <button>Aide</button>
         <button>Contact</button>
         <button>Qui sommes-nous</button>
@@ -55,11 +59,11 @@
 </template>
 
 <script>
-import { useUserStore } from '@/stores/UserStore';
-import { logout } from '@/services/UserService';
+import { useUserStore } from "@/stores/UserStore";
+import { logout } from "@/services/UserService";
 
 export default {
-  name: 'AppHeader',
+  name: "AppHeader",
   data() {
     return {
       showDropdown: false, // Contrôle le menu déroulant
@@ -93,21 +97,24 @@ export default {
         const userStore = useUserStore();
         userStore.user = null;
         userStore.isAuthenticated = false;
-        this.$router.push('/');
+        this.$router.push("/");
       }
     },
     // Navigation
     goToHome() {
-      this.$router.push('/');
+      this.$router.push("/");
     },
     goToAuth() {
-      this.$router.push('/Auth');
+      this.$router.push("/Auth");
     },
     goToCat() {
-      this.$router.push('/Catalogue');
+      this.$router.push("/Catalogue");
+    },
+    goToProm() {
+      this.$router.push("/Promotion");
     },
     goToPanier() {
-      this.$router.push('/Panier');
+      this.$router.push("/Panier");
     },
   },
 
@@ -124,15 +131,15 @@ export default {
     // Charge les infos utilisateur au montage
     userStore.fetchUser();
     // Écoutez les changements de taille de la fenêtre
-    window.addEventListener('resize', this.updateScreenWidth);
+    window.addEventListener("resize", this.updateScreenWidth);
   },
   unmounted() {
     // Nettoyez l'écouteur d'événements lors de la destruction du composant
-    window.removeEventListener('resize', this.updateScreenWidth);
+    window.removeEventListener("resize", this.updateScreenWidth);
   },
 };
 </script>
-  
+
 <style scoped>
 .header-container {
   display: flex;
@@ -160,7 +167,8 @@ export default {
   align-items: center;
 }
 
-.cart-btn, .connect-btn {
+.cart-btn,
+.connect-btn {
   padding: 10px 15px;
   margin-left: 10px;
   font-size: 14px;
@@ -172,7 +180,8 @@ export default {
   transition: background-color 0.3s;
 }
 
-.cart-btn:hover, .connect-btn:hover {
+.cart-btn:hover,
+.connect-btn:hover {
   background-color: darkred;
 }
 
@@ -249,7 +258,7 @@ export default {
 
 .bar::before,
 .bar::after {
-  content: '';
+  content: "";
   width: 30px;
   height: 3px;
   background-color: #333;
