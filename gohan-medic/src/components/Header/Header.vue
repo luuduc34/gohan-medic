@@ -51,9 +51,6 @@
       <div class="menu" :class="{ show: isOpen }">
         <button @click="goToCat">Catalogue</button>
         <button @click="goToProm">Promotion</button>
-        <button>Aide</button>
-        <button>Contact</button>
-        <button>Qui sommes-nous</button>
       </div>
     </nav>
   </body>

@@ -1,11 +1,16 @@
 <template>
   <div class="promotion-card">
+    <!-- Macaron rouge pour le pourcentage de réduction -->
+    <div v-if="promotion.percentage" class="discount-badge">
+      -{{ promotion.percentage }}%
+    </div>
+
     <img :src="promotion.picture || ''" alt="Image du produit" loading="lazy" />
+
     <div class="promotion-info">
       <h3>{{ promotion.name }}</h3>
       <p class="original-price">{{ promotion.price || 0 }} €</p>
       <p class="discounted-price">{{ promotion.discountedPrice || 0 }} €</p>
-      <p v-if="promotion.percentage" class="percentage">-{{ promotion.percentage }}%</p>
     </div>
   </div>
 </template>
@@ -24,7 +29,7 @@ export default {
 
 <style scoped>
 .promotion-card {
-  
+  position: relative; /* Pour positionner le macaron rouge */
   border: 1px solid #ddd;
   border-radius: 8px;
   padding: 10px;
@@ -32,18 +37,32 @@ export default {
   background-color: #fff;
   text-align: center;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  width: 220px; /* Largeur fixe */
-  height: 300px; /* Hauteur fixe */
+  width: 220px; 
+  height: 300px; 
   display: flex;
   flex-direction: column;
   justify-content: space-between;
 }
 
 .promotion-card img {
-  max-width: 100%; /* Ajuste la largeur de l'image */
-  height: 150px; /* Ajuste la hauteur de l'image */
-  object-fit: contain; /* Pour garder les proportions */
+  max-width: 100%;
+  height: 150px; 
+  object-fit: contain;
   margin-bottom: 10px;
+}
+
+/* Macaron rouge pour le pourcentage de réduction */
+.discount-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background-color: #d32f2f;
+  color: white;
+  font-weight: bold;
+  font-size: 0.9rem;
+  padding: 5px 10px;
+  border-radius: 50px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .original-price {
@@ -53,11 +72,6 @@ export default {
 
 .discounted-price {
   color: #d32f2f;
-  font-weight: bold;
-}
-
-.percentage {
-  color: #388e3c;
   font-weight: bold;
 }
 </style>

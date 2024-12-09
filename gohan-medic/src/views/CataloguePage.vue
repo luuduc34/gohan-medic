@@ -2,25 +2,31 @@
   <h1 class="catalogue-title">Catalogue</h1>
   <div class="wrapper">
     <div class="catalogue">
-    <ProductCard
-      v-for="product in products"
-      :key="product.id"
-      :product="product"
-    />
+      <!-- Boucle sur les produits -->
+      <template v-for="product in products" :key="product.id">
+        <!-- Affiche une PromotionCard si is_promotion est true -->
+        <PromotionCard
+          v-if="product.is_promotion && product.promotion"
+          :promotion="product.promotion"
+        />
+        <!-- Sinon affiche une ProductCard -->
+        <ProductCard v-else :product="product" />
+      </template>
+    </div>
   </div>
-  </div>
-  
 </template>
 
 <script>
-import ProductCard from "@/components/Product/ProductCard.vue"
+import ProductCard from "@/components/Product/ProductCard.vue";
+import PromotionCard from "@/components/Promotion/PromotionCard.vue";
 import { fetchProducts } from "@/services/ProductService";
-
+import { fetchPromotionsByProductId } from "@/services/PromotionService";
 
 export default {
   name: "CataloguePage",
   components: {
     ProductCard,
+    PromotionCard,
   },
   data() {
     return {
@@ -28,7 +34,25 @@ export default {
     };
   },
   async created() {
-    this.products = await fetchProducts(); // Récupérer les médicaments depuis Supabase
+    try {
+      const fetchedProducts = await fetchProducts(); // Récupérer tous les produits depuis Supabase
+
+      // Boucle sur les produits pour enrichir ceux qui sont en promotion
+      const enrichedProducts = await Promise.all(
+        fetchedProducts.map(async (product) => {
+          if (product.is_promotion) {
+            // Si le produit est en promotion, récupérer ses données de promotion
+            const promotion = await fetchPromotionsByProductId(product.id);
+            return { ...product, promotion }; // Ajoute la promotion au produit
+          }
+          return product; // Retourne le produit tel quel si non promotionnel
+        })
+      );
+
+      this.products = enrichedProducts; // Mets à jour les produits enrichis dans l'état
+    } catch (error) {
+      console.error("Erreur lors du chargement des produits :", error);
+    }
   },
 };
 </script>
