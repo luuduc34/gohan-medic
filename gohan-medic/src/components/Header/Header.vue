@@ -37,6 +37,8 @@
           <!-- Accès aux commandes utilisateur -->
           <button>Mes favoris</button>
           <!-- Accès aux favoris utilisateur -->
+          <!-- Bouton Gestion visible uniquement si l'utilisateur est admin -->
+          <button v-if="isAdmin" @click="goToGestion">Gestion</button>
         </div>
       </div>
     </div>
@@ -52,7 +54,6 @@
         <button>Aide</button>
         <button>Contact</button>
         <button>Qui sommes-nous</button>
-        <button>Gestion</button>
       </div>
     </nav>
   </body>
@@ -77,6 +78,11 @@ export default {
       const userStore = useUserStore();
       return userStore.isAuthenticated;
     },
+    // Vérifie si l'utilisateur a un rôle administrateur
+    isAdmin() {
+      const userStore = useUserStore();
+      return userStore.role === 2; // Role 2 correspond à un admin
+    },
   },
   methods: {
     toggleMenu() {
@@ -97,6 +103,7 @@ export default {
         const userStore = useUserStore();
         userStore.user = null;
         userStore.isAuthenticated = false;
+        userStore.role = null;
         this.$router.push("/");
       }
     },
@@ -115,6 +122,9 @@ export default {
     },
     goToPanier() {
       this.$router.push("/Panier");
+    },
+    goToGestion() {
+      this.$router.push("/Gestion");
     },
   },
 

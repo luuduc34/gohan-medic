@@ -1,85 +1,84 @@
-// Importation des modules nécessaires pour la gestion des routes
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHistory } from "vue-router";
+import { useUserStore } from "@/stores/UserStore";
 
-// Importation des pages/views utilisées dans les routes
-import AuthPage from '@/views/AuthPage.vue'
-import CataloguePage from '@/views/CataloguePage.vue'
-import HomePage from '@/views/HomePage.vue'
-import PanierPage from '@/views/PanierPage.vue'
-import UnauthorizedPage from '@/views/UnauthorizedPage.vue'
+import AuthPage from "@/views/AuthPage.vue";
+import CataloguePage from "@/views/CataloguePage.vue";
+import HomePage from "@/views/HomePage.vue";
+import PanierPage from "@/views/PanierPage.vue";
+import UnauthorizedPage from "@/views/UnauthorizedPage.vue";
+import PromotionPage from "@/views/PromotionPage.vue";
+import GestionPage from "@/views/GestionPage.vue";
 
-// Importation du client Supabase pour vérifier l'authentification
-import { supabase } from '@/lib/supabaseClient'
-import PromotionPage from '@/views/PromotionPage.vue'
-
-let localUser;
-
-// Définition des routes de l'application
 const routes = [
-  {
+  { 
     path: "/Home",
     name: "HomePage",
-    component: HomePage,  // Page d'accueil
+    component: HomePage
   },
-  {
+  { 
     path: "/Auth",
     name: "Auth",
-    component: AuthPage, // Page de connexion/inscription
+    component: AuthPage
   },
-  {
+  { 
     path: "/Panier",
     name: "Panier",
-    component: PanierPage, // Page du panier
-    meta: {requiresAuth: true} // Page nécessite une authentification
+    component: PanierPage,
+    meta: { requiresAuth: true }
   },
-  {
+  { 
+    path: "/Gestion",
+    name: "Gestion",
+    component: GestionPage,
+    meta: { requiresAuth: true, requiresAdmin: true }
+  },
+  { 
     path: "/Catalogue",
     name: "CataloguePage",
-    component: CataloguePage,  // Page du catalogue
-    // meta: {requiresAuth: true}
-    // meta: {requiresAdmin: true}
+    component: CataloguePage
   },
-  {
+  { 
     path: "/Promotion",
     name: "PromotionPage",
-    component: PromotionPage,  // Page promotion
+    component: PromotionPage
   },
-  {
+  { 
     path: "/",
-    redirect: "/Home", // Redirige par défaut vers /HomePage
+    redirect: "/Home"
   },
   {
     path: "/Unauthorized",
     name: "Unauthorized",
-    component: UnauthorizedPage, // Page affichée pour les accès non autorisés
-  }
-]
+    component: UnauthorizedPage
+  },
+];
 
-// Création du routeur avec l'historique de navigation
 const router = createRouter({
   history: createWebHistory(process.env.BASE_URL),
-  routes
-})
+  routes,
+});
 
-// Fonction pour vérifier l'authentification de l'utilisateur avant de permettre l'accès aux pages
-async function getUser(next) {
-  localUser = await supabase.auth.getSession();
-  if(localUser.data.session == null) {
-    next('/unauthorized')  // Si l'utilisateur n'est pas authentifié, redirige vers la page Unauthorized
-  }
-  else {
-    next();  // Si l'utilisateur est authentifié, continue la navigation
-  }
-}
+router.beforeEach(async (to, from, next) => {
+  const userStore = useUserStore();
 
-// Vérification de l'authentification avant chaque route nécessitant une connexion
-router.beforeEach((to, from, next) =>{
+  // Vérifie si la route nécessite une authentification
   if (to.meta.requiresAuth) {
-    getUser(next);  // Vérifie l'authentification si la route nécessite un utilisateur connecté
-  }
-  else {
-    next();  // Permet la navigation si aucune authentification n'est requise
-  }
-})
+    if (!userStore.user) {
+      await userStore.fetchUser(); // Récupère les informations utilisateur si elles ne sont pas encore chargées
+    }
 
-export default router
+    if (!userStore.isAuthenticated) {
+      return next({ path: "/Unauthorized" }); // Redirige si l'utilisateur n'est pas authentifié
+    }
+
+    // Vérifie si la route nécessite un rôle spécifique (par exemple : admin)
+    if (to.meta.requiresAdmin && userStore.role !== 2) {
+      return next({ path: "/Unauthorized" }); // Redirige si l'utilisateur n'a pas le rôle requis
+    }
+  }
+
+  // Si aucune condition n'est bloquante, continue la navigation
+  next();
+});
+
+export default router;

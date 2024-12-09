@@ -5,6 +5,7 @@ export const useUserStore = defineStore("user", {
   state: () => ({
     user: null, // Contiendra les informations complètes de l'utilisateur
     isAuthenticated: false, // Indicateur pour savoir si l'utilisateur est connecté ou non
+    role: null,             // Rôle utilisateur (1: Client, 2: Admin)
   }),
 
   actions: {
@@ -13,15 +14,17 @@ export const useUserStore = defineStore("user", {
       try {
         const user = await checkAuthStatus();
         if (user) {
-          this.user = user; // Stocker les informations utilisateur dans Pinia
+          this.user            = user; // Stocker les informations utilisateur dans Pinia
           this.isAuthenticated = true; // Marquer l'utilisateur comme connecté
+          this.role            = user.profile.id_role_user; // Stocke le rôle utilisateur
         } else {
-          this.user = null;
+          this.user            = null;
           this.isAuthenticated = false;
         }
       } catch (error) {
-        this.user = null;
+        this.user            = null;
         this.isAuthenticated = false;
+        this.role            = null;
       }
     },
 
@@ -29,8 +32,9 @@ export const useUserStore = defineStore("user", {
     async logoutUser() {
       const success = await logout();
       if (success) {
-        this.user = null; // Réinitialiser les informations de l'utilisateur
+        this.user            = null; // Réinitialiser les informations de l'utilisateur
         this.isAuthenticated = false; // Marquer l'utilisateur comme non connecté
+        this.role            = null; // Réinitialise le rôle utilisateur
       }
     },
   },
