@@ -132,7 +132,6 @@ export default {
   color: #2d9cdb; /* Bleu clair */
 }
 
-/* Description produit au survol */
 .product-description {
   padding: 10px;
   font-size: 14px;

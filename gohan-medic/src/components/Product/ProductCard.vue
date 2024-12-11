@@ -1,6 +1,6 @@
 <template>
   <!-- Carte de produit qui affiche l'image, le nom et le prix -->
-  <div class="product-card" @mouseover="hover = true" @mouseleave="hover = false">
+  <div class="product-card">
     <!-- Change l'état du survol à true lorsque la souris passe au-dessus -->
     <!-- Change l'état du survol à false lorsque la souris quitte -->
 
@@ -13,7 +13,7 @@
       <!-- Affiche le prix du produit -->
     </div>
     <!-- Affiche la description du produit seulement si l'élément hover est activé -->
-    <div v-if="hover" class="product-description">
+    <div>
       <p>{{ product.description }}</p>
       <!-- Affiche la description du produit -->
     </div>
@@ -31,9 +31,7 @@ export default {
     },
   },
   data() {
-    return {
-      hover: false, // Gère l'état du survol du produit
-    };
+    return {};
   },
 };
 </script>
@@ -42,18 +40,19 @@ export default {
 /* Style de la carte de produit */
 .product-card {
   position: relative; /* Permet de positionner la description au-dessus du produit */
+  margin: 0 auto;
   background: #fff; /* Fond blanc pour la carte */
   border: 1px solid #ddd; /* Bordure grise */
-  border-radius: 8px; /* Coins arrondis */
+  border-radius: 12px; /* Coins arrondis */
   overflow: hidden; /* Cache tout ce qui dépasse de la carte */
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Ombre légère autour de la carte */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Ombre légère autour de la carte */
   transition: transform 0.3s, height 0.3s; /* Animation pour l'agrandissement de la carte */
   cursor: pointer; /* Change le curseur lorsqu'on passe sur la carte */
 }
 
-/* Effet de survol pour agrandir la carte */
 .product-card:hover {
-  transform: scale(1.05); /* Agrandit la carte légèrement au survol */
+  transform: translateY(-10px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
 }
 
 /* Style de l'image du produit */
