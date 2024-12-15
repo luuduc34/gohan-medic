@@ -6,6 +6,7 @@
         v-for="promotion in promotions"
         :key="promotion.id"
         :promotion="promotion"
+        @click="openProductDetail(promotion)"
       />
     </div>
   </div>
@@ -14,6 +15,7 @@
 <script>
 import PromotionCard from "@/components/Promotion/PromotionCard.vue";
 import { fetchPromotions } from "@/services/PromotionService";
+import { useProductStore } from "@/stores/productStore";
 
 export default {
   name: "PromotionPage",
@@ -32,6 +34,13 @@ export default {
     } catch (error) {
       console.error("Erreur lors du chargement des promotions :", error);
     }
+  },
+  methods: {
+    openProductDetail(product) {
+      const productStore = useProductStore();
+      productStore.setProduct(product);
+      this.$router.push({ name: "ProductDetail" });
+    },
   },
 };
 </script>

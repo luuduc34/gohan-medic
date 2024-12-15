@@ -36,7 +36,7 @@ export default {
   background-color: #fff;
   text-align: center;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-
+  cursor: pointer; /* Change le curseur lorsqu'on passe sur la carte */
   justify-content: space-between;
 }
 

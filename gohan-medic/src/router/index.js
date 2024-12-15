@@ -8,6 +8,7 @@ import PanierPage from "@/views/PanierPage.vue";
 import UnauthorizedPage from "@/views/UnauthorizedPage.vue";
 import PromotionPage from "@/views/PromotionPage.vue";
 import GestionPage from "@/views/GestionPage.vue";
+import ProductDetailPage from "@/views/ProduitDetailPage.vue";
 
 const routes = [
   { 
@@ -36,6 +37,11 @@ const routes = [
     path: "/Catalogue",
     name: "CataloguePage",
     component: CataloguePage
+  },
+  {
+    path: "/product-detail",
+    name: "ProductDetail",
+    component: ProductDetailPage,
   },
   { 
     path: "/Promotion",

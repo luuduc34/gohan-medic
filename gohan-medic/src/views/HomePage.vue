@@ -18,6 +18,7 @@
             v-for="product in newProducts"
             :key="product.id"
             :product="product"
+            @click="openProductDetail(product)"
           />
         </div>
         <button class="arrow right" @click="scrollCarousel('newProducts', 'right')">
@@ -38,6 +39,7 @@
             v-for="promotion in promotions"
             :key="promotion.id"
             :promotion="promotion"
+            @click="openProductDetail(promotion)"
           />
         </div>
         <button class="arrow right" @click="scrollCarousel('promotions', 'right')">
@@ -53,6 +55,7 @@ import { fetchProducts } from "@/services/ProductService";
 import { fetchPromotions } from "@/services/PromotionService";
 import ProductCard from "@/components/Product/ProductCard.vue";
 import PromotionCard from "@/components/Promotion/PromotionCard.vue";
+import { useProductStore } from "@/stores/productStore";
 
 export default {
   name: "HomePage",
@@ -96,6 +99,11 @@ export default {
         left: direction === "left" ? -scrollAmount : scrollAmount,
         behavior: "smooth",
       });
+    },
+    openProductDetail(product) {
+      const productStore = useProductStore();
+      productStore.setProduct(product);
+      this.$router.push({ name: "ProductDetail" });
     },
   },
 };
