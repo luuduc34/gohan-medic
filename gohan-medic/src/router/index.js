@@ -9,7 +9,6 @@ import UnauthorizedPage from "@/views/UnauthorizedPage.vue";
 import PromotionPage from "@/views/PromotionPage.vue";
 import GestionPage from "@/views/GestionPage.vue";
 import StockPage from "@/views/StockPage.vue";
-import NewProductPage from "@/views/NewProductPage.vue";
 import ModifyProductPage from "@/views/ModifyProductPage.vue";
 import ExportCsvPage from "@/views/exportCsvPage.vue";
 import ProductDetailPage from "@/views/ProduitDetailPage.vue";
@@ -36,30 +35,32 @@ const routes = [
     name: "Gestion",
     component: GestionPage,
     meta: { requiresAuth: true, requiresAdmin: true },
-  },
-  {
-    path: "/Gestion/Stock",
-    name: "Stock",
-    component: StockPage,
-    meta: { requiresAuth: true, requiresAdmin: true },
-  },
-  {
-    path: "/Gestion/Export",
-    name: "ExportCsvPage",
-    component: ExportCsvPage,
-    meta: { requiresAuth: true, requiresAdmin: true },
-  },
-  {
-    path: "/Gestion/NewProduct",
-    name: "NewProductPage",
-    component: NewProductPage,
-    meta: { requiresAuth: true, requiresAdmin: true },
-  },
-  {
-    path: "/Gestion/ModifyProduct",
-    name: "ModifyProductPage",
-    component: ModifyProductPage,
-    meta: { requiresAuth: true, requiresAdmin: true },
+    children: [
+      {
+        path: "Stock", // Pas de `/Gestion/` ici, car c'est relatif
+        name: "Stock",
+        component: StockPage,
+        meta: { requiresAuth: true, requiresAdmin: true },
+      },
+      {
+        path: "Export",
+        name: "ExportCsvPage",
+        component: ExportCsvPage,
+        meta: { requiresAuth: true, requiresAdmin: true },
+      },
+      {
+        path: "NewProduct",
+        name: "NewProductPage",
+        component: () => import("@/views/NewProductPage.vue"),
+        meta: { requiresAuth: true, requiresAdmin: true },
+      },           
+      {
+        path: "ModifyProduct",
+        name: "ModifyProductPage",
+        component: ModifyProductPage,
+        meta: { requiresAuth: true, requiresAdmin: true },
+      },
+    ],
   },
   { 
     path: "/Catalogue",

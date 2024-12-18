@@ -38,3 +38,22 @@ export async function fetchProducts(limit = null) {
     if (error) throw error;
     return data;
   }
+
+  // Récupérer toutes les catégories
+export async function fetchCategories() {
+  const { data, error } = await supabase.from("category_product").select("*");
+  if (error) {
+    console.error("Erreur lors du chargement des catégories :", error);
+    return [];
+  }
+  return data;
+}
+
+// Ajouter un produit
+export async function addProduct(productData) {
+  const { data, error } = await supabase.from("product").insert([productData]);
+  if (error) {
+    throw new Error("Erreur lors de l'ajout du produit : " + error.message);
+  }
+  return data;
+}
