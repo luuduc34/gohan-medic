@@ -57,3 +57,16 @@ export async function addProduct(productData) {
   }
   return data;
 }
+
+// Modifier un produit existant
+export async function updateProduct(productId, updatedData) {
+  const { data, error } = await supabase
+    .from("product")
+    .update(updatedData)
+    .eq("id", productId);
+  if (error) {
+    throw new Error("Erreur lors de la mise à jour du produit : " + error.message);
+  }
+  return data;
+}
+

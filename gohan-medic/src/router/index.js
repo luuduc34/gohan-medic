@@ -9,7 +9,6 @@ import UnauthorizedPage from "@/views/UnauthorizedPage.vue";
 import PromotionPage from "@/views/PromotionPage.vue";
 import GestionPage from "@/views/GestionPage.vue";
 import StockPage from "@/views/StockPage.vue";
-import ModifyProductPage from "@/views/ModifyProductPage.vue";
 import ExportCsvPage from "@/views/exportCsvPage.vue";
 import ProductDetailPage from "@/views/ProduitDetailPage.vue";
 
@@ -37,7 +36,7 @@ const routes = [
     meta: { requiresAuth: true, requiresAdmin: true },
     children: [
       {
-        path: "Stock", // Pas de `/Gestion/` ici, car c'est relatif
+        path: "Stock",
         name: "Stock",
         component: StockPage,
         meta: { requiresAuth: true, requiresAdmin: true },
@@ -57,9 +56,17 @@ const routes = [
       {
         path: "ModifyProduct",
         name: "ModifyProductPage",
-        component: ModifyProductPage,
+        component: () => import("@/views/ModifyProductPage.vue"),
         meta: { requiresAuth: true, requiresAdmin: true },
       },
+      {
+        path: "ModifyProduct/:id",
+        name: "ModifyProductForm",
+        component: () => import("@/views/ModifyProductForm.vue"),
+        meta: { requiresAuth: true, requiresAdmin: true },
+      }
+      
+      },            
     ],
   },
   { 
