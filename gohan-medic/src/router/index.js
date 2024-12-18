@@ -64,9 +64,7 @@ const routes = [
         name: "ModifyProductForm",
         component: () => import("@/views/ModifyProductForm.vue"),
         meta: { requiresAuth: true, requiresAdmin: true },
-      }
-      
-      },            
+      }            
     ],
   },
   { 
