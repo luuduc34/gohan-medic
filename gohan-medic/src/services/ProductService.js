@@ -1,7 +1,7 @@
 import { supabase } from "@/lib/supabaseClient";
 
 export async function fetchProducts(limit = null) {
-  let query = supabase.from('product').select('*');
+  let query = supabase.from('product').select('*').eq('is_active', true);
   
   // Si une limite est spécifiée, on l'applique
   if (limit) {
@@ -70,3 +70,15 @@ export async function updateProduct(productId, updatedData) {
   return data;
 }
 
+// Soft suppression
+export async function softDeleteProduct(productId) {
+  const { data, error } = await supabase
+    .from("product")
+    .update({ is_active: false })
+    .eq("id", productId);
+
+  if (error) {
+    throw new Error("Erreur lors de la suppression du produit : " + error.message);
+  }
+  return data;
+}

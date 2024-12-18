@@ -29,12 +29,28 @@ const routes = [
     component: PanierPage,
     meta: { requiresAuth: true },
   },
-  { 
+  {
     path: "/Gestion",
     name: "Gestion",
     component: GestionPage,
     meta: { requiresAuth: true, requiresAdmin: true },
     children: [
+      {
+        path: "Produits",
+        name: "ProductManagement",
+        component: () => import("@/views/ProductManagementPage.vue"),
+      },
+      {
+        path: "Produits/Nouveau",
+        name: "NewProductPage",
+        component: () => import("@/views/NewProductPage.vue"),
+      },
+      {
+        path: "Produits/Modifier/:id",
+        name: "ModifyProductForm",
+        component: () => import("@/views/ModifyProductForm.vue"),
+        props: true,
+      },
       {
         path: "Stock",
         name: "Stock",
@@ -46,25 +62,7 @@ const routes = [
         name: "ExportCsvPage",
         component: ExportCsvPage,
         meta: { requiresAuth: true, requiresAdmin: true },
-      },
-      {
-        path: "NewProduct",
-        name: "NewProductPage",
-        component: () => import("@/views/NewProductPage.vue"),
-        meta: { requiresAuth: true, requiresAdmin: true },
       },           
-      {
-        path: "ModifyProduct",
-        name: "ModifyProductPage",
-        component: () => import("@/views/ModifyProductPage.vue"),
-        meta: { requiresAuth: true, requiresAdmin: true },
-      },
-      {
-        path: "ModifyProduct/:id",
-        name: "ModifyProductForm",
-        component: () => import("@/views/ModifyProductForm.vue"),
-        meta: { requiresAuth: true, requiresAdmin: true },
-      }            
     ],
   },
   { 

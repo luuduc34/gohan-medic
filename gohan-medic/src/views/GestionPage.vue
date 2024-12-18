@@ -13,10 +13,7 @@
           <router-link to="/Gestion/Export">Export</router-link>
         </li>
         <li>
-          <router-link to="/Gestion/NewProduct">Ajout produit</router-link>
-        </li>
-        <li>
-          <router-link to="/Gestion/ModifyProduct">Modifier produit</router-link>
+          <router-link to="/Gestion/Produits">Gestion des produits</router-link>
         </li>
       </ul>
     </div>

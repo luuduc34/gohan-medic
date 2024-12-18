@@ -66,7 +66,7 @@ export default {
       try {
         await updateProduct(this.product.id, this.product);
         alert("Produit modifié avec succès !");
-        this.$router.push("/Gestion/Stock");
+        this.$router.push("/Gestion/ModifyProduct");
       } catch (error) {
         console.error("Erreur lors de la modification du produit :", error);
       }

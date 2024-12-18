@@ -1,25 +1,31 @@
 <template>
-  <div class="modify-product-page">
-    <h1 class="page-title">Modifier ou Supprimer un Produit</h1>
+  <div class="product-management-page">
+    <h1 class="page-title">Gestion des Produits</h1>
 
-    <!-- Liste des produits -->
+    <!-- Bouton pour Ajouter un Produit -->
+    <div class="top-actions">
+      <router-link to="/Gestion/Produits/Nouveau" class="add-btn"
+        >Ajouter un Produit</router-link
+      >
+    </div>
+
+    <!-- Tableau des Produits -->
     <ul v-if="products.length > 0" class="product-list">
       <li v-for="product in products" :key="product.id" class="product-item">
         <span>{{ product.name }}</span>
         <div>
-          <!-- Lien pour Modifier -->
+          <!-- Boutons pour Modifier et Supprimer -->
           <router-link
-            class="router-link"
             :to="{ name: 'ModifyProductForm', params: { id: product.id } }"
+            class="modify-link"
           >
             Modifier
           </router-link>
-          <!-- Bouton pour Supprimer -->
           <button @click="softDelete(product.id)" class="delete-btn">Supprimer</button>
         </div>
       </li>
     </ul>
-    <p v-else>Aucun produit disponible pour modification.</p>
+    <p v-else>Aucun produit disponible.</p>
   </div>
 </template>
 
@@ -27,15 +33,15 @@
 import { fetchProducts, softDeleteProduct } from "@/services/ProductService";
 
 export default {
-  name: "ModifyProductPage",
+  name: "ProductManagementPage",
   data() {
     return {
-      products: [], // Liste des produits
+      products: [],
     };
   },
   async created() {
     try {
-      this.products = await fetchProducts(); // Charge les produits au montage
+      this.products = await fetchProducts();
     } catch (error) {
       console.error("Erreur lors du chargement des produits :", error);
     }
@@ -44,11 +50,11 @@ export default {
     async softDelete(productId) {
       if (confirm("Êtes-vous sûr de vouloir supprimer ce produit ?")) {
         try {
-          await softDeleteProduct(productId); // Met à jour is_active = false
+          await softDeleteProduct(productId);
           alert("Produit supprimé avec succès !");
-          this.products = await fetchProducts(); // Recharge les produits pour actualiser la liste
+          this.products = await fetchProducts(); // Actualise la liste
         } catch (error) {
-          console.error("Erreur lors de la suppression du produit :", error);
+          console.error("Erreur lors de la suppression :", error);
         }
       }
     },
@@ -57,20 +63,24 @@ export default {
 </script>
 
 <style scoped>
-.modify-product-page {
-  max-width: 800px;
-  margin: 20px auto;
-  padding: 20px;
-  background-color: #f9fbff;
-  border-radius: 10px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
 .page-title {
   text-align: center;
   font-size: 2rem;
   color: #2d9cdb;
   margin-bottom: 20px;
+}
+
+.top-actions {
+  text-align: right;
+  margin-bottom: 10px;
+}
+
+.add-btn {
+  background-color: #28a745;
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 5px;
+  text-decoration: none;
 }
 
 .product-list {
@@ -89,32 +99,25 @@ export default {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.router-link {
-  color: #007bff; /* Bleu pour le lien Modifier */
+.modify-link {
+  color: #007bff;
   text-decoration: none;
-  font-weight: bold;
+  margin-right: 10px;
 }
 
-.router-link:hover {
+.modify-link:hover {
   text-decoration: underline;
-  color: #0056b3;
 }
 
-button {
-  margin-left: 10px;
-  padding: 5px 10px;
+.delete-btn {
+  background-color: #e74c3c;
+  color: white;
   border: none;
   border-radius: 5px;
-  color: #fff;
-  cursor: pointer;
-  font-weight: bold;
+  padding: 5px 10px;
 }
 
-button.delete-btn {
-  background-color: #e74c3c; /* Rouge pour supprimer */
-}
-
-button.delete-btn:hover {
+.delete-btn:hover {
   background-color: #c0392b;
 }
 </style>
