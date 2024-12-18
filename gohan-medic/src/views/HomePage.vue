@@ -147,19 +147,12 @@ export default {
   overflow-x: auto;
   padding: 10px;
   scroll-behavior: smooth;
+  -ms-overflow-style: none; /* Pour Internet Explorer et Edge */
+  scrollbar-width: none; /* Pour Firefox */
 }
 
 .carousel::-webkit-scrollbar {
-  height: 8px;
-}
-
-.carousel::-webkit-scrollbar-thumb {
-  background: #007bff;
-  border-radius: 8px;
-}
-
-.carousel::-webkit-scrollbar-track {
-  background: #f0f0f0;
+  display: none; /* Pour Chrome, Safari et Opera */
 }
 
 .carousel > * {

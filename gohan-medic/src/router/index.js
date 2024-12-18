@@ -8,48 +8,76 @@ import PanierPage from "@/views/PanierPage.vue";
 import UnauthorizedPage from "@/views/UnauthorizedPage.vue";
 import PromotionPage from "@/views/PromotionPage.vue";
 import GestionPage from "@/views/GestionPage.vue";
+import StockPage from "@/views/StockPage.vue";
+import NewProductPage from "@/views/NewProductPage.vue";
+import ModifyProductPage from "@/views/ModifyProductPage.vue";
+import ExportCsvPage from "@/views/exportCsvPage.vue";
 
 const routes = [
   { 
     path: "/Home",
     name: "HomePage",
-    component: HomePage
+    component: HomePage,
   },
   { 
     path: "/Auth",
     name: "Auth",
-    component: AuthPage
+    component: AuthPage,
   },
   { 
     path: "/Panier",
     name: "Panier",
     component: PanierPage,
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: true },
   },
   { 
     path: "/Gestion",
     name: "Gestion",
     component: GestionPage,
-    meta: { requiresAuth: true, requiresAdmin: true }
+    meta: { requiresAuth: true, requiresAdmin: true },
+  },
+  {
+    path: "/Gestion/Stock",
+    name: "Stock",
+    component: StockPage,
+    meta: { requiresAuth: true, requiresAdmin: true },
+  },
+  {
+    path: "/Gestion/Export",
+    name: "ExportCsvPage",
+    component: ExportCsvPage,
+    meta: { requiresAuth: true, requiresAdmin: true },
+  },
+  {
+    path: "/Gestion/NewProduct",
+    name: "NewProductPage",
+    component: NewProductPage,
+    meta: { requiresAuth: true, requiresAdmin: true },
+  },
+  {
+    path: "/Gestion/ModifyProduct",
+    name: "ModifyProductPage",
+    component: ModifyProductPage,
+    meta: { requiresAuth: true, requiresAdmin: true },
   },
   { 
     path: "/Catalogue",
     name: "CataloguePage",
-    component: CataloguePage
+    component: CataloguePage,
   },
   { 
     path: "/Promotion",
     name: "PromotionPage",
-    component: PromotionPage
+    component: PromotionPage,
   },
   { 
     path: "/",
-    redirect: "/Home"
+    redirect: "/Home",
   },
   {
     path: "/Unauthorized",
     name: "Unauthorized",
-    component: UnauthorizedPage
+    component: UnauthorizedPage,
   },
 ];
 
