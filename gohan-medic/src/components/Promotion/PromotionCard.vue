@@ -30,25 +30,25 @@ export default {
 <style scoped>
 .promotion-card {
   position: relative; /* Pour positionner le macaron rouge */
+  margin: 0 auto;
   border: 1px solid #ddd;
-  border-radius: 8px;
-  padding: 10px;
-  margin: 10px;
+  border-radius: 12px;
   background-color: #fff;
   text-align: center;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  width: 220px; 
-  height: 300px; 
-  display: flex;
-  flex-direction: column;
+  cursor: pointer; /* Change le curseur lorsqu'on passe sur la carte */
   justify-content: space-between;
+}
+
+.promotion-card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
 }
 
 .promotion-card img {
   max-width: 100%;
-  height: 150px; 
+  height: 200px;
   object-fit: contain;
-  margin-bottom: 10px;
 }
 
 /* Macaron rouge pour le pourcentage de réduction */

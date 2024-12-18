@@ -12,6 +12,7 @@ import StockPage from "@/views/StockPage.vue";
 import NewProductPage from "@/views/NewProductPage.vue";
 import ModifyProductPage from "@/views/ModifyProductPage.vue";
 import ExportCsvPage from "@/views/exportCsvPage.vue";
+import ProductDetailPage from "@/views/ProduitDetailPage.vue";
 
 const routes = [
   { 
@@ -64,6 +65,11 @@ const routes = [
     path: "/Catalogue",
     name: "CataloguePage",
     component: CataloguePage,
+  },
+  {
+    path: "/product-detail",
+    name: "ProductDetail",
+    component: ProductDetailPage,
   },
   { 
     path: "/Promotion",

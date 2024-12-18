@@ -8,9 +8,10 @@
         <PromotionCard
           v-if="product.is_promotion && product.promotion"
           :promotion="product.promotion"
+          @click="openProductDetail(product)"
         />
         <!-- Sinon affiche une ProductCard -->
-        <ProductCard v-else :product="product" />
+        <ProductCard v-else :product="product" @click="openProductDetail(product)" />
       </template>
     </div>
   </div>
@@ -19,8 +20,9 @@
 <script>
 import ProductCard from "@/components/Product/ProductCard.vue";
 import PromotionCard from "@/components/Promotion/PromotionCard.vue";
-import { fetchProducts } from "@/services/ProductService";
+import { fetchProducts, fetchProductByIdCategory } from "@/services/ProductService";
 import { fetchPromotionsByProductId } from "@/services/PromotionService";
+import { useProductStore } from "@/stores/productStore";
 
 export default {
   name: "CataloguePage",
@@ -34,25 +36,70 @@ export default {
     };
   },
   async created() {
-    try {
-      const fetchedProducts = await fetchProducts(); // Récupérer tous les produits depuis Supabase
+    const categoryId = this.$route.query.category;
 
-      // Boucle sur les produits pour enrichir ceux qui sont en promotion
+    try {
+      let fetchedProducts;
+
+      if (categoryId) {
+        // Récupérer les produits pour une catégorie spécifique
+        fetchedProducts = await fetchProductByIdCategory(categoryId);
+      } else {
+        // Récupérer tous les produits si aucune catégorie n'est spécifiée
+        fetchedProducts = await fetchProducts();
+      }
+
+      // Enrichir les produits avec les promotions si applicable
       const enrichedProducts = await Promise.all(
         fetchedProducts.map(async (product) => {
           if (product.is_promotion) {
-            // Si le produit est en promotion, récupérer ses données de promotion
             const promotion = await fetchPromotionsByProductId(product.id);
-            return { ...product, promotion }; // Ajoute la promotion au produit
+            return { ...product, promotion };
           }
-          return product; // Retourne le produit tel quel si non promotionnel
+          return product;
         })
       );
 
-      this.products = enrichedProducts; // Mets à jour les produits enrichis dans l'état
+      this.products = enrichedProducts;
     } catch (error) {
       console.error("Erreur lors du chargement des produits :", error);
     }
+  },
+  watch: {
+    // Recharger les produits si la catégorie change
+    "$route.query.category": "loadProducts",
+  },
+  methods: {
+    async loadProducts() {
+      const categoryId = this.$route.query.category;
+
+      try {
+        let fetchedProducts;
+
+        if (categoryId) {
+          fetchedProducts = await fetchProductByIdCategory(categoryId);
+        } else {
+          fetchedProducts = await fetchProducts();
+        }
+
+        this.products = await Promise.all(
+          fetchedProducts.map(async (product) => {
+            if (product.is_promotion) {
+              const promotion = await fetchPromotionsByProductId(product.id);
+              return { ...product, promotion };
+            }
+            return product;
+          })
+        );
+      } catch (error) {
+        console.error("Erreur lors de la mise à jour des produits :", error);
+      }
+    },
+    openProductDetail(product) {
+      const productStore = useProductStore();
+      productStore.setProduct(product);
+      this.$router.push({ name: "ProductDetail" });
+    },
   },
 };
 </script>
@@ -132,7 +179,6 @@ export default {
   color: #2d9cdb; /* Bleu clair */
 }
 
-/* Description produit au survol */
 .product-description {
   padding: 10px;
   font-size: 14px;

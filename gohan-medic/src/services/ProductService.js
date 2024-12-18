@@ -29,3 +29,12 @@ export async function fetchProducts(limit = null) {
     if (error) throw error;
     return data;
   }
+
+  export async function fetchProductByIdCategory(categorieId) {
+    const { data, error } = await supabase
+      .from('product')
+      .select('*')
+      .eq('category_id', categorieId);
+    if (error) throw error;
+    return data;
+  }
