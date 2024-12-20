@@ -36,6 +36,7 @@ const routes = [
     meta: { requiresAuth: true, requiresAdmin: true },
     children: [
       {
+        // Menu Produits
         path: "Produits",
         name: "ProductManagement",
         component: () => import("@/views/ProductManagementPage.vue"),
@@ -49,6 +50,24 @@ const routes = [
         path: "Produits/Modifier/:id",
         name: "ModifyProductForm",
         component: () => import("@/views/ModifyProductForm.vue"),
+        props: true,
+      },
+      // Menu Promotions
+      {
+        path: "Promotions",
+        name: "PromotionManagement",
+        component: () => import("@/views/PromotionManagementPage.vue"),
+      },
+           
+      {
+        path: "Promotions/Nouveau",
+        name: "NewPromotionPage",
+        component: () => import("@/views/NewPromotionPage.vue"),
+      },
+      {
+        path: "Promotions/Modifier/:id",
+        name: "ModifyPromotionForm",
+        component: () => import("@/views/ModifyPromotionForm.vue"),
         props: true,
       },
       {

@@ -15,6 +15,10 @@
         <li>
           <router-link to="/Gestion/Produits">Gestion des produits</router-link>
         </li>
+        <li></li>
+        <li>
+          <router-link to="/Gestion/Promotions">Gestion des promotions</router-link>
+        </li>
       </ul>
     </div>
 
