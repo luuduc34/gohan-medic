@@ -33,7 +33,6 @@
           >
             Modifier
           </router-link>
-
           <button
             v-if="promotion.isValid"
             @click="softDeletePromotion(promotion.promotionId)"

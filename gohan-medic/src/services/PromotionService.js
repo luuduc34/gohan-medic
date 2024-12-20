@@ -187,8 +187,6 @@ export async function updatePromotion(promotionId, updatedData) {
 
 export async function fetchPromotionsForManagement() {
   try {
-    const today = new Date().toISOString();
-
     const { data, error } = await supabase
       .from("promotion_product")
       .select(`
@@ -196,58 +194,34 @@ export async function fetchPromotionsForManagement() {
           id,
           percentage,
           created_at,
-          end_at
+          end_at,
+          is_valid
         ),
         product:product_id (
           id,
-          name,
-          is_promotion
+          name
         )
       `);
 
     if (error) {
-      throw new Error("Erreur lors de la récupération des promotions : " + error.message);
-    }
-
-    if (!data || data.length === 0) {
-      console.warn("Aucune promotion trouvée.");
+      console.error("Erreur lors de la récupération des promotions :", error);
       return [];
     }
 
-    // Formatage des données
-    return data.map(({ promotion, product }) => {
-      if (!promotion || !product) {
-        console.warn("Données manquantes pour promotion ou produit :", { promotion, product });
-        return null;
-      }
-
-      return {
-        promotionId: promotion.id,
-        productName: product.name,
-        percentage: promotion.percentage,
-        createdAt: promotion.created_at,
-        endAt: promotion.end_at,
-        isValid: today <= promotion.end_at,
-      };
-    }).filter(Boolean); // Filtre les résultats nuls
+    return data.map(({ promotion, product }) => ({
+      promotionId: promotion.id,
+      productName: product.name,
+      percentage: promotion.percentage,
+      createdAt: promotion.created_at,
+      endAt: promotion.end_at,
+      isValid: promotion.is_valid,
+    }));
   } catch (error) {
     console.error("Erreur critique lors de la récupération des promotions :", error);
     return [];
   }
 }
 
-// Désactiver une promotion (Soft Delete)
-export async function softDeletePromotion(promotionId) {
-  const { error } = await supabase
-    .from("promotion")
-    .update({ is_active: false })
-    .eq("id", promotionId);
-
-  if (error) {
-    console.error("Erreur lors de la suppression de la promotion :", error);
-    throw new Error(error.message);
-  }
-}
 
 // Update des validité des promotions
 export async function updatePromotionValidity() {
@@ -303,5 +277,52 @@ export async function updatePromotionValidity() {
     }
   } catch (error) {
     console.error("Erreur critique lors de la mise à jour des validités :", error);
+  }
+}
+
+// Désactiver une promotion (Soft Delete)
+export async function softDeletePromotion(promotionId) {
+  try {
+    // Étape 1 : Désactiver la promotion en mettant is_valid à false
+    const { error: promotionError } = await supabase
+      .from("promotion")
+      .update({ is_valid: false })
+      .eq("id", promotionId);
+
+    if (promotionError) {
+      throw new Error("Erreur lors de la suppression de la promotion : " + promotionError.message);
+    }
+
+    // Étape 2 : Récupérer les produits liés à la promotion
+    const { data: products, error: productError } = await supabase
+      .from("promotion_product")
+      .select("product_id")
+      .eq("promotion_id", promotionId);
+
+    if (productError) {
+      throw new Error("Erreur lors de la récupération des produits liés : " + productError.message);
+    }
+
+    if (products.length === 0) {
+      console.warn("Aucun produit lié à la promotion.");
+      return;
+    }
+
+    const productIds = products.map((product) => product.product_id);
+
+    // Étape 3 : Mettre à jour is_promotion à false dans la table product
+    const { error: updateError } = await supabase
+      .from("product")
+      .update({ is_promotion: false })
+      .in("id", productIds);
+
+    if (updateError) {
+      throw new Error("Erreur lors de la mise à jour des produits : " + updateError.message);
+    }
+
+    console.log("Promotion désactivée et produits mis à jour avec succès !");
+  } catch (error) {
+    console.error("Erreur lors de la désactivation de la promotion :", error);
+    throw error;
   }
 }
