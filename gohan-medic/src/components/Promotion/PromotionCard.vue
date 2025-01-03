@@ -9,7 +9,7 @@
 
     <div class="promotion-info">
       <h3>{{ promotion.name }}</h3>
-      <p class="original-price">{{ promotion.price || 0 }} €</p>
+      <p class="original-price">{{ promotion.originalPrice || 0 }} €</p>
       <p class="discounted-price">{{ promotion.discountedPrice || 0 }} €</p>
     </div>
   </div>

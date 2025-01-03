@@ -8,35 +8,86 @@ import PanierPage from "@/views/PanierPage.vue";
 import UnauthorizedPage from "@/views/UnauthorizedPage.vue";
 import PromotionPage from "@/views/PromotionPage.vue";
 import GestionPage from "@/views/GestionPage.vue";
+import StockPage from "@/views/StockPage.vue";
+import ExportCsvPage from "@/views/exportCsvPage.vue";
 import ProductDetailPage from "@/views/ProduitDetailPage.vue";
 
 const routes = [
   { 
     path: "/Home",
     name: "HomePage",
-    component: HomePage
+    component: HomePage,
   },
   { 
     path: "/Auth",
     name: "Auth",
-    component: AuthPage
+    component: AuthPage,
   },
   { 
     path: "/Panier",
     name: "Panier",
     component: PanierPage,
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: true },
   },
-  { 
+  {
     path: "/Gestion",
     name: "Gestion",
     component: GestionPage,
-    meta: { requiresAuth: true, requiresAdmin: true }
+    meta: { requiresAuth: true, requiresAdmin: true },
+    children: [
+      {
+        // Menu Produits
+        path: "Produits",
+        name: "ProductManagement",
+        component: () => import("@/views/ProductManagementPage.vue"),
+      },
+      {
+        path: "Produits/Nouveau",
+        name: "NewProductPage",
+        component: () => import("@/views/NewProductPage.vue"),
+      },
+      {
+        path: "Produits/Modifier/:id",
+        name: "ModifyProductForm",
+        component: () => import("@/views/ModifyProductForm.vue"),
+        props: true,
+      },
+      // Menu Promotions
+      {
+        path: "Promotions",
+        name: "PromotionManagement",
+        component: () => import("@/views/PromotionManagementPage.vue"),
+      },
+           
+      {
+        path: "Promotions/Nouveau",
+        name: "NewPromotionPage",
+        component: () => import("@/views/NewPromotionPage.vue"),
+      },
+      {
+        path: "Promotions/Modifier/:id",
+        name: "ModifyPromotionForm",
+        component: () => import("@/views/ModifyPromotionForm.vue"),
+        props: true,
+      },
+      {
+        path: "Stock",
+        name: "Stock",
+        component: StockPage,
+        meta: { requiresAuth: true, requiresAdmin: true },
+      },
+      {
+        path: "Export",
+        name: "ExportCsvPage",
+        component: ExportCsvPage,
+        meta: { requiresAuth: true, requiresAdmin: true },
+      },           
+    ],
   },
   { 
     path: "/Catalogue",
     name: "CataloguePage",
-    component: CataloguePage
+    component: CataloguePage,
   },
   {
     path: "/product-detail",
@@ -46,16 +97,16 @@ const routes = [
   { 
     path: "/Promotion",
     name: "PromotionPage",
-    component: PromotionPage
+    component: PromotionPage,
   },
   { 
     path: "/",
-    redirect: "/Home"
+    redirect: "/Home",
   },
   {
     path: "/Unauthorized",
     name: "Unauthorized",
-    component: UnauthorizedPage
+    component: UnauthorizedPage,
   },
 ];
 
