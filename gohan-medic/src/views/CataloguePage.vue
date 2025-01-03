@@ -22,7 +22,7 @@ import ProductCard from "@/components/Product/ProductCard.vue";
 import PromotionCard from "@/components/Promotion/PromotionCard.vue";
 import { fetchProducts, fetchProductByIdCategory } from "@/services/ProductService";
 import { fetchPromotionsByProductId } from "@/services/PromotionService";
-import { useProductStore } from "@/stores/productStore";
+import { useProductStore } from "@/stores/ProductStore";
 
 export default {
   name: "CataloguePage",

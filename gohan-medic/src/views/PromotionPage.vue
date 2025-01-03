@@ -15,7 +15,7 @@
 <script>
 import PromotionCard from "@/components/Promotion/PromotionCard.vue";
 import { fetchPromotions } from "@/services/PromotionService";
-import { useProductStore } from "@/stores/productStore";
+import { useProductStore } from "@/stores/ProductStore";
 
 export default {
   name: "PromotionPage",

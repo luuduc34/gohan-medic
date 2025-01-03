@@ -55,7 +55,7 @@ import { fetchProducts } from "@/services/ProductService";
 import { fetchPromotions } from "@/services/PromotionService";
 import ProductCard from "@/components/Product/ProductCard.vue";
 import PromotionCard from "@/components/Promotion/PromotionCard.vue";
-import { useProductStore } from "@/stores/productStore";
+import { useProductStore } from "@/stores/ProductStore";
 
 export default {
   name: "HomePage",
