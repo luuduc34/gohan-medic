@@ -2,16 +2,9 @@
   <h1 class="catalogue-title">Catalogue</h1>
   <div class="wrapper">
     <div class="catalogue">
-      <!-- Boucle sur les produits -->
       <template v-for="product in products" :key="product.id">
-        <!-- Affiche une PromotionCard si is_promotion est true -->
-        <PromotionCard
-          v-if="product.is_promotion && product.promotion"
-          :promotion="product.promotion"
-          @click="openProductDetail(product)"
-        />
-        <!-- Sinon affiche une ProductCard -->
-        <ProductCard v-else :product="product" @click="openProductDetail(product)" />
+        <!-- Affiche une ProductCard, qui gère la promotion en interne -->
+        <ProductCard :product="product" @click="openProductDetail(product)" />
       </template>
     </div>
   </div>
@@ -19,16 +12,14 @@
 
 <script>
 import ProductCard from "@/components/Product/ProductCard.vue";
-import PromotionCard from "@/components/Promotion/PromotionCard.vue";
 import { fetchProducts, fetchProductByIdCategory } from "@/services/ProductService";
-import { fetchPromotionsByProductId } from "@/services/PromotionService";
+import { fetchPromotionsForMultipleProducts } from "@/services/PromotionService";
 import { useProductStore } from "@/stores/ProductStore";
 
 export default {
   name: "CataloguePage",
   components: {
     ProductCard,
-    PromotionCard,
   },
   data() {
     return {
@@ -49,16 +40,19 @@ export default {
         fetchedProducts = await fetchProducts();
       }
 
-      // Enrichir les produits avec les promotions si applicable
-      const enrichedProducts = await Promise.all(
-        fetchedProducts.map(async (product) => {
-          if (product.is_promotion) {
-            const promotion = await fetchPromotionsByProductId(product.id);
-            return { ...product, promotion };
-          }
-          return product;
-        })
+      // Récupérer les promotions pour tous les produits
+      const promotionsByProduct = await fetchPromotionsForMultipleProducts(
+        fetchedProducts.map((product) => product.id)
       );
+
+      // Enrichir les produits avec les promotions si applicable
+      const enrichedProducts = fetchedProducts.map((product) => {
+        const promotion = promotionsByProduct[product.id];
+        if (promotion) {
+          return { ...product, promotion };
+        }
+        return product;
+      });
 
       this.products = enrichedProducts;
     } catch (error) {
@@ -77,24 +71,31 @@ export default {
         let fetchedProducts;
 
         if (categoryId) {
+          // Récupérer les produits pour une catégorie spécifique
           fetchedProducts = await fetchProductByIdCategory(categoryId);
         } else {
+          // Récupérer tous les produits si aucune catégorie n'est spécifiée
           fetchedProducts = await fetchProducts();
         }
 
-        this.products = await Promise.all(
-          fetchedProducts.map(async (product) => {
-            if (product.is_promotion) {
-              const promotion = await fetchPromotionsByProductId(product.id);
-              return { ...product, promotion };
-            }
-            return product;
-          })
+        // Récupérer les promotions pour tous les produits en une seule requête
+        const promotionsByProduct = await fetchPromotionsForMultipleProducts(
+          fetchedProducts.map((product) => product.id)
         );
+
+        // Enrichir les produits avec leurs promotions
+        this.products = fetchedProducts.map((product) => {
+          const promotion = promotionsByProduct[product.id];
+          if (promotion) {
+            return { ...product, promotion };
+          }
+          return product;
+        });
       } catch (error) {
         console.error("Erreur lors de la mise à jour des produits :", error);
       }
     },
+
     openProductDetail(product) {
       const productStore = useProductStore();
       productStore.setProduct(product);

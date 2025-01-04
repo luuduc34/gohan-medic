@@ -35,11 +35,11 @@
           ⬅️
         </button>
         <div class="carousel" ref="promotionsCarousel">
-          <PromotionCard
-            v-for="promotion in promotions"
-            :key="promotion.id"
-            :promotion="promotion"
-            @click="openProductDetail(promotion)"
+          <ProductCard
+            v-for="product in promotions"
+            :key="product.id"
+            :product="product"
+            @click="openProductDetail(product)"
           />
         </div>
         <button class="arrow right" @click="scrollCarousel('promotions', 'right')">
@@ -52,41 +52,52 @@
 
 <script>
 import { fetchProducts } from "@/services/ProductService";
-import { fetchPromotions } from "@/services/PromotionService";
+import { fetchPromotionsForMultipleProducts } from "@/services/PromotionService";
 import ProductCard from "@/components/Product/ProductCard.vue";
-import PromotionCard from "@/components/Promotion/PromotionCard.vue";
 import { useProductStore } from "@/stores/ProductStore";
 
 export default {
   name: "HomePage",
   components: {
     ProductCard,
-    PromotionCard,
   },
   data() {
     return {
-      newProducts: [], // Nouveaux produits (moins de 30 jours)
-      promotions: [], // Promotions actuelles
+      newProducts: [], // Nouveaux produits
+      promotions: [], // Produits en promotion
     };
   },
   async created() {
     try {
-      // Récupération des produits et des promotions
+      // Récupérer tous les produits
       const allProducts = await fetchProducts();
-      const allPromotions = await fetchPromotions();
 
-      // Filtrer les produits ajoutés dans les 30 derniers jours
+      // Récupérer les promotions pour tous les produits
+      const promotionsByProduct = await fetchPromotionsForMultipleProducts(
+        allProducts.map((product) => product.id)
+      );
+
+      // Enrichir les produits avec leurs promotions si applicable
+      const enrichedProducts = allProducts.map((product) => {
+        const promotion = promotionsByProduct[product.id];
+        if (promotion) {
+          return { ...product, promotion };
+        }
+        return product;
+      });
+
+      // Filtrer les nouveaux produits (moins de 30 jours)
       const today = new Date();
       const thirtyDaysAgo = new Date(today);
       thirtyDaysAgo.setDate(today.getDate() - 30);
 
-      this.newProducts = allProducts.filter((product) => {
+      this.newProducts = enrichedProducts.filter((product) => {
         const createdAt = new Date(product.created_at);
         return createdAt >= thirtyDaysAgo;
       });
 
-      // Ajouter les promotions
-      this.promotions = allPromotions.slice(0, 5); // Limiter les promotions à 10
+      // Les promotions sont les produits qui ont une promotion
+      this.promotions = enrichedProducts.filter((product) => product.promotion);
     } catch (error) {
       console.error("Erreur lors du chargement des données :", error.message);
     }
@@ -155,12 +166,19 @@ export default {
   overflow-x: auto;
   padding: 10px;
   scroll-behavior: smooth;
-  -ms-overflow-style: none; /* Pour Internet Explorer et Edge */
-  scrollbar-width: none; /* Pour Firefox */
 }
 
 .carousel::-webkit-scrollbar {
-  display: none; /* Pour Chrome, Safari et Opera */
+  height: 8px;
+}
+
+.carousel::-webkit-scrollbar-thumb {
+  background: #007bff;
+  border-radius: 8px;
+}
+
+.carousel::-webkit-scrollbar-track {
+  background: #f0f0f0;
 }
 
 .carousel > * {

@@ -34,7 +34,8 @@ export async function fetchProducts(limit = null) {
     const { data, error } = await supabase
       .from('product')
       .select('*')
-      .eq('category_id', categorieId);
+      .eq('category_id', categorieId)
+      .eq('is_active', true);
     if (error) throw error;
     return data;
   }

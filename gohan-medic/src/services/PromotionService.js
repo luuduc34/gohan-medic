@@ -56,37 +56,116 @@ export async function fetchPromotions() {
   }
 }
 
+// Récupérer les promotions pour plusieurs produits
+export async function fetchPromotionsForMultipleProducts(productIds) {
+  const { data, error } = await supabase
+    .from("promotion_product")
+    .select(`
+      product:product_id (
+        id,
+        name,
+        price,
+        description,
+        picture,
+        is_promotion
+      ),
+      promotion:promotion_id (
+        id,
+        percentage,
+        created_at,
+        end_at,
+        is_valid
+      )
+    `)
+    .in("product_id", productIds) // Filtrer par plusieurs IDs produits
+    .eq("product.is_promotion", true) // Filtrer les produits en promotion
+    .eq("promotion.is_valid", true); // Filtrer les promotions valides
+
+  if (error) {
+    console.error("Erreur lors de la récupération des promotions :", error);
+    return [];
+  }
+
+  console.log("Données récupérées :", data);
+
+  if (!data || data.length === 0) {
+    console.warn("Aucune promotion trouvée pour les produits spécifiés.");
+    return [];
+  }
+
+  // Organiser les promotions par produit
+  const promotionsByProduct = data.reduce((acc, entry) => {
+    const { product, promotion } = entry;
+    if (!promotion || !product) return acc;
+
+    const discountedPrice =
+      product.price - (product.price * promotion.percentage) / 100;
+
+    if (!acc[product.id]) {
+      acc[product.id] = {
+        id: promotion.id,
+        name: product.name,
+        originalPrice: product.price,
+        discountedPrice: discountedPrice.toFixed(2),
+        percentage: promotion.percentage,
+        picture: product.picture,
+        startDate: promotion.created_at,
+        endDate: promotion.end_at,
+      };
+    }
+    return acc;
+  }, {});
+
+  return promotionsByProduct;
+}
+
+
 // Récupérer une promotion par produit ID
 export async function fetchPromotionsByProductId(productId) {
   const { data, error } = await supabase
     .from("promotion_product")
     .select(`
+      product:product_id (
+        id,
+        name,
+        price,
+        description,
+        picture,
+        is_promotion
+      ),
       promotion:promotion_id (
         id,
         percentage,
         created_at,
-        end_at
-      ),
-      product:product_id (
-        price,
-        picture,
-        name,
-        description
+        end_at,
+        is_valid
       )
     `)
-    .eq("product_id", productId);
+    .eq("product_id", productId) // Filtrer par ID produit
+    .eq("product.is_promotion", true) // Filtrer les produits en promotion
+    .eq("promotion.is_valid", true); // Filtrer les promotions valides
 
   if (error) {
     console.error("Erreur lors de la récupération de la promotion :", error);
     return null;
   }
 
+  console.log("Données récupérées :", data);
+
   if (!data || data.length === 0) {
     console.warn("Aucune promotion trouvée pour le produit :", productId);
     return null;
   }
 
-  const { promotion, product } = data[0];
+  // Filtrer pour ne garder que les entrées où 'promotion' est non-null
+  const validPromotion = data.filter(entry => entry.promotion !== null && entry.promotion.is_valid === true);
+
+  if (validPromotion.length === 0) {
+    console.warn("Aucune promotion valide trouvée pour le produit :", productId);
+    return null;
+  }
+
+  const { promotion, product } = validPromotion[0];
 
   if (!promotion || !product) {
     console.error("Promotion ou produit manquant :", { product, promotion });
@@ -97,13 +176,17 @@ export async function fetchPromotionsByProductId(productId) {
     product.price - (product.price * promotion.percentage) / 100;
 
   return {
-    ...product,
-    discountedPrice: discountedPrice.toFixed(2),
-    percentage: promotion.percentage,
-    createdAt: promotion.created_at,
-    endAt: promotion.end_at,
+    id: promotion.id,
+    name: product.name,
+    originalPrice: product.price, // Prix initial du produit
+    discountedPrice: discountedPrice.toFixed(2), // Prix remisé
+    percentage: promotion.percentage, // Pourcentage de réduction
+    picture: product.picture, // Image du produit
+    startDate: promotion.created_at, // Date de début de la promotion
+    endDate: promotion.end_at, // Date de fin de la promotion
   };
 }
+
 
 // Ajouter une promotion
 export async function addPromotion(promotionData, productId) {
