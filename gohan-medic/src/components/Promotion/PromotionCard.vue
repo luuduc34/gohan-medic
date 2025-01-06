@@ -1,16 +1,20 @@
 <template>
   <div class="promotion-card">
     <!-- Macaron rouge pour le pourcentage de réduction -->
-    <div v-if="promotion.percentage" class="discount-badge">
+    <div v-if="promotion.percentage" class="discount-badge" aria-label="Réduction">
       -{{ promotion.percentage }}%
     </div>
 
-    <img :src="promotion.picture || ''" alt="Image du produit" loading="lazy" />
+    <img
+      :src="promotion.picture || ''"
+      alt="`Image de la promotion ${promotion.name}`"
+      loading="lazy"
+    />
 
     <div class="promotion-info">
       <h3>{{ promotion.name }}</h3>
-      <p class="original-price">{{ promotion.originalPrice || 0 }} €</p>
-      <p class="discounted-price">{{ promotion.discountedPrice || 0 }} €</p>
+      <p class="original-price">{{ promotion.originalPrice }} €</p>
+      <p class="discounted-price">{{ promotion.discountedPrice }} €</p>
     </div>
   </div>
 </template>

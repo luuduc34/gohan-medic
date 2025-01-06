@@ -13,11 +13,13 @@ export const useUserStore = defineStore("user", {
     async fetchUser() {
       try {
         const user = await checkAuthStatus();
+        
         if (user) {
           this.user            = user; // Stocker les informations utilisateur dans Pinia
           this.isAuthenticated = true; // Marquer l'utilisateur comme connecté
           this.role            = user.profile.id_role_user; // Stocke le rôle utilisateur
-        } else {
+        } 
+        else {
           this.user            = null;
           this.isAuthenticated = false;
         }
@@ -32,6 +34,8 @@ export const useUserStore = defineStore("user", {
     async logoutUser() {
       const success = await logout();
       if (success) {
+
+        // Réinitialiser l'utilisateur et vider les données locales liées
         this.user            = null; // Réinitialiser les informations de l'utilisateur
         this.isAuthenticated = false; // Marquer l'utilisateur comme non connecté
         this.role            = null; // Réinitialise le rôle utilisateur

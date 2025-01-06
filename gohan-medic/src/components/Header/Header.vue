@@ -44,49 +44,24 @@
     </div>
   </header>
   <body>
-    <nav class="nav-container">
-      <div class="menu-toggle" :class="{ open: isOpen }" @click="toggleMenu">
-        <div class="bar"></div>
-      </div>
-      <div class="menu" :class="{ show: isOpen }">
-        <!-- Menu déroulant pour Catalogue -->
-        <div
-          class="dropdown"
-          @mouseover="showCatalogDropdown = true"
-          @mouseleave="showCatalogDropdown = false"
-        >
-          <button @click="goToCat">Catalogue</button>
-          <div v-if="showCatalogDropdown" class="dropdown-menu">
-            <!-- Boutons pour chaque catégorie -->
-            <button
-              v-for="category in categories"
-              :key="category.id"
-              @click="handleCategoryClick(category.id)"
-            >
-              {{ category.name }}
-            </button>
-          </div>
-        </div>
-        <button @click="goToProm">Promotion</button>
-      </div>
-    </nav>
+    <NavBar></NavBar>
   </body>
 </template>
 
 <script>
 import { useUserStore } from "@/stores/UserStore";
 import { logout } from "@/services/UserService";
-import { fetchCategoryProducts } from "@/services/CategoryProductService";
+import NavBar from "../NavBar/NavBar.vue";
 
 export default {
   name: "AppHeader",
+  components: {
+    NavBar,
+  },
   data() {
     return {
       showProfileDropdown: false, // Contrôle le menu déroulant profile
-      showCatalogDropdown: false, // Contrôle le menu déroulant catalogue
-      isOpen: false, // État du menu (fermé par défaut)
       screenWidth: window.innerWidth, // Largeur actuelle de l'écran
-      categories: [], // Stocke les catégories récupérées
     };
   },
   computed: {
@@ -102,18 +77,6 @@ export default {
     },
   },
   methods: {
-    toggleMenu() {
-      this.isOpen = !this.isOpen; // Inverse l'état du menu
-    },
-    async fetchCategories() {
-      const categories = await fetchCategoryProducts();
-      this.categories = categories;
-    },
-    handleCategoryClick(categoryId) {
-      console.log("Catégorie sélectionnée :", categoryId);
-      this.$router.push({ name: "CataloguePage", query: { category: categoryId } });
-    },
-
     // Fonction pour mettre à jour la largeur de l'écran
     updateScreenWidth() {
       this.screenWidth = window.innerWidth;
@@ -140,12 +103,6 @@ export default {
     goToAuth() {
       this.$router.push("/Auth");
     },
-    goToCat() {
-      this.$router.push("/Catalogue");
-    },
-    goToProm() {
-      this.$router.push("/Promotion");
-    },
     goToPanier() {
       this.$router.push("/Panier");
     },
@@ -167,14 +124,6 @@ export default {
     const userStore = useUserStore();
     // Charge les infos utilisateur au montage
     userStore.fetchUser();
-    // Écoutez les changements de taille de la fenêtre
-    window.addEventListener("resize", this.updateScreenWidth);
-
-    this.fetchCategories();
-  },
-  unmounted() {
-    // Nettoyez l'écouteur d'événements lors de la destruction du composant
-    window.removeEventListener("resize", this.updateScreenWidth);
   },
 };
 </script>

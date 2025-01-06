@@ -10,7 +10,7 @@
 </template>
 
 <script>
-import { useProductStore } from "@/stores/productStore";
+import { useProductStore } from "@/stores/ProductStore";
 import productDetailCard from "@/components/Product/productDetailCard.vue";
 
 export default {

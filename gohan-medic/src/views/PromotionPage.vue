@@ -2,25 +2,27 @@
   <h1 class="catalogue-title">Promotions</h1>
   <div class="wrapper">
     <div class="catalogue">
-      <PromotionCard
-        v-for="promotion in promotions"
-        :key="promotion.id"
-        :promotion="promotion"
-        @click="openProductDetail(promotion)"
+      <!-- Utilisation de la carte produit pour afficher les promotions -->
+      <ProductCard
+        v-for="product in promotions"
+        :key="product.id"
+        :product="product"
+        @click="openProductDetail(product)"
       />
     </div>
   </div>
 </template>
 
 <script>
-import PromotionCard from "@/components/Promotion/PromotionCard.vue";
-import { fetchPromotions } from "@/services/PromotionService";
-import { useProductStore } from "@/stores/productStore";
+import ProductCard from "@/components/Product/ProductCard.vue"; // Carte Produit
+import { fetchProducts } from "@/services/ProductService"; // Service des Produits
+import { fetchPromotionsForMultipleProducts } from "@/services/PromotionService"; // Service des Promotions
+import { useProductStore } from "@/stores/ProductStore";
 
 export default {
   name: "PromotionPage",
   components: {
-    PromotionCard,
+    ProductCard, // Carte produit importée
   },
   data() {
     return {
@@ -29,8 +31,21 @@ export default {
   },
   async created() {
     try {
-      this.promotions = await fetchPromotions();
-      console.log("Promotions chargées :", this.promotions);
+      // Récupérer tous les produits
+      const fetchedProducts = await fetchProducts();
+
+      // Récupérer les promotions pour tous les produits
+      const promotionsByProduct = await fetchPromotionsForMultipleProducts(
+        fetchedProducts.map((product) => product.id)
+      );
+
+      // Filtrer les produits qui ont une promotion
+      this.promotions = fetchedProducts
+        .filter((product) => promotionsByProduct[product.id]) // Seulement ceux avec une promotion
+        .map((product) => ({
+          ...product,
+          promotion: promotionsByProduct[product.id], // Ajout des détails de promotion au produit
+        }));
     } catch (error) {
       console.error("Erreur lors du chargement des promotions :", error);
     }

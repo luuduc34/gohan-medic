@@ -23,28 +23,48 @@
             <span>30 ml</span>
             <span class="price-per-unit">21,67 € / 100 ml</span>
           </div>
-          <div class="price">
-            <span class="old-price">15 €</span>
+          <!-- Vérifie si le produit est en promotion -->
+          <div
+            v-if="product.is_promotion && product.promotion?.discountedPrice"
+            class="price"
+          >
+            <span class="old-price">{{ product.price.toFixed(2) }} €</span>
+            <span class="new-price">{{ product.promotion.discountedPrice }} €</span>
+            <span class="discount">-{{ product.promotion.percentage }}%</span>
+          </div>
+          <!-- Si pas en promotion -->
+          <div v-else class="price no-promo">
             <span class="new-price">{{ product.price.toFixed(2) }} €</span>
-            <span class="discount">0%</span>
           </div>
         </div>
 
         <!-- Disponibilité et Livraison -->
         <div class="availability">
-          <span class="in-stock">En stock</span>
-          <span class="delivery-info"> Livraison gratuite à partir de 39 € </span>
+          <span v-if="product.stock > 0" class="in-stock">En stock</span>
+          <span v-else class="out-stock">Rupture de stock</span>
+          <span class="delivery-info">Livraison gratuite à partir de 39 €</span>
         </div>
 
         <!-- Sélection de la quantité et ajout au panier -->
         <div class="actions">
-          <div class="quantity-container">
+          <!-- Quantité visible seulement si le stock est > 0 -->
+          <div v-if="product.stock > 0" class="quantity-container">
             <label for="quantity" class="quantity-label">Quantité</label>
             <select id="quantity" v-model="selectedQuantity" class="quantity-select">
-              <option v-for="n in 9" :key="n" :value="n">{{ n }}</option>
+              <!-- Limite les options à la quantité en stock -->
+              <option v-for="n in Math.min(9, product.stock)" :key="n" :value="n">
+                {{ n }}
+              </option>
             </select>
           </div>
-          <button class="add-to-cart" @click="addToCart">Ajouter au panier</button>
+          <button
+            class="add-to-cart"
+            :class="{ disabled: product.stock === 0 }"
+            :disabled="product.stock === 0"
+            @click="addToCart"
+          >
+            Ajouter au panier
+          </button>
         </div>
       </div>
     </div>
@@ -188,6 +208,19 @@ hr {
   font-weight: bold;
 }
 
+.price.no-promo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.price.no-promo .new-price {
+  font-weight: bold;
+  color: #d92332;
+}
+
 /* Disponibilité et Livraison */
 .availability {
   display: flex;
@@ -201,6 +234,11 @@ hr {
   font-weight: bold;
 }
 
+.out-stock {
+  color: #fd172a;
+  font-weight: bold;
+}
+
 .delivery-info {
   color: #555;
 }
@@ -208,8 +246,9 @@ hr {
 /* Actions */
 .actions {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
+  width: 100%;
 }
 
 /* Conteneur arrondi pour la quantité */
@@ -260,9 +299,16 @@ hr {
   cursor: pointer;
   font-weight: bold;
   transition: background-color 0.3s ease;
+  margin-left: 15px; /* Garantir que le bouton reste à droite */
 }
 
 .add-to-cart:hover {
   background-color: #b71b27;
+}
+
+.add-to-cart.disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+  pointer-events: none;
 }
 </style>

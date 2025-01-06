@@ -1,6 +1,6 @@
 import { defineStore } from "pinia";
 
-export const useProductStore = defineStore("productStore", {
+export const useProductStore = defineStore("ProductStore", {
   state: () => ({
     currentProduct: null,
   }),
@@ -9,4 +9,6 @@ export const useProductStore = defineStore("productStore", {
       this.currentProduct = product;
     },
   },
+
+  persist: true, // Sauvegarde automatique de l'état utilisateur (même après un refresh)
 });
