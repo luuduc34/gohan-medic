@@ -1,19 +1,27 @@
 <template>
-  <h1 class="catalogue-title">Promotions</h1>
-  <div class="wrapper">
-    <div class="catalogue">
-      <!-- Utilisation de la carte produit pour afficher les promotions -->
-      <ProductCard
-        v-for="product in promotions"
-        :key="product.id"
-        :product="product"
-        @click="openProductDetail(product)"
-      />
+  <div>
+    <h1 class="catalogue-title">Promotions</h1>
+    <!-- Barre de recherche -->
+    <div class="search-container">
+      <SearchBar v-model:searchQuery="searchQuery" />
+    </div>
+
+    <div class="wrapper">
+      <div class="catalogue">
+        <!-- Utilisation de la carte produit pour afficher les promotions filtrées -->
+        <ProductCard
+          v-for="product in filteredPromotions"
+          :key="product.id"
+          :product="product"
+          @click="openProductDetail(product)"
+        />
+      </div>
     </div>
   </div>
 </template>
 
 <script>
+import SearchBar from "@/components/SearchBar/SearchBar.vue"; // Barre de recherche
 import ProductCard from "@/components/Product/ProductCard.vue"; // Carte Produit
 import { fetchProducts } from "@/services/ProductService"; // Service des Produits
 import { fetchPromotionsForMultipleProducts } from "@/services/PromotionService"; // Service des Promotions
@@ -22,11 +30,13 @@ import { useProductStore } from "@/stores/ProductStore";
 export default {
   name: "PromotionPage",
   components: {
-    ProductCard, // Carte produit importée
+    SearchBar,
+    ProductCard,
   },
   data() {
     return {
-      promotions: [],
+      searchQuery: "", // Requête de recherche
+      promotions: [], // Liste des promotions
     };
   },
   async created() {
@@ -34,21 +44,29 @@ export default {
       // Récupérer tous les produits
       const fetchedProducts = await fetchProducts();
 
-      // Récupérer les promotions pour tous les produits
+      // Récupérer les promotions pour chaque produit
       const promotionsByProduct = await fetchPromotionsForMultipleProducts(
         fetchedProducts.map((product) => product.id)
       );
 
-      // Filtrer les produits qui ont une promotion
+      // Filtrer et enrichir les produits avec les promotions
       this.promotions = fetchedProducts
-        .filter((product) => promotionsByProduct[product.id]) // Seulement ceux avec une promotion
+        .filter((product) => promotionsByProduct[product.id])
         .map((product) => ({
           ...product,
-          promotion: promotionsByProduct[product.id], // Ajout des détails de promotion au produit
+          promotion: promotionsByProduct[product.id],
         }));
     } catch (error) {
       console.error("Erreur lors du chargement des promotions :", error);
     }
+  },
+  computed: {
+    filteredPromotions() {
+      // Filtrer les promotions en fonction de la recherche
+      return this.promotions.filter((product) =>
+        product.name.toLowerCase().includes(this.searchQuery.toLowerCase())
+      );
+    },
   },
   methods: {
     openProductDetail(product) {
@@ -61,6 +79,12 @@ export default {
 </script>
 
 <style scoped>
+/* Barre de recherche */
+.search-container {
+  margin: 20px auto;
+  text-align: center;
+}
+
 /* Titre du catalogue */
 .catalogue-title {
   text-align: center;
