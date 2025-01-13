@@ -65,17 +65,22 @@ export default {
     try {
       await updatePromotionValidity(); // Vérifier et mettre à jour les promotions
       this.promotions = await fetchPromotionsForManagement();
+      this.sortPromotionsByEndDate(); // Trier les promotions après récupération
     } catch (error) {
       console.error("Erreur lors du chargement des promotions :", error);
     }
   },
   methods: {
+    sortPromotionsByEndDate() {
+      this.promotions.sort((a, b) => new Date(b.endAt) - new Date(a.endAt));
+    },
     async softDeletePromotion(promotionId) {
       if (confirm("Êtes-vous sûr de vouloir désactiver cette promotion ?")) {
         try {
           await softDeletePromotion(promotionId);
           alert("Promotion désactivée avec succès !");
           this.promotions = await fetchPromotionsForManagement(); // Rafraîchir la liste
+          this.sortPromotionsByEndDate(); // Trier à nouveau après mise à jour
         } catch (error) {
           console.error("Erreur lors de la désactivation :", error);
         }
