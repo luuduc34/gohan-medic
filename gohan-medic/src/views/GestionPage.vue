@@ -10,12 +10,8 @@
           <router-link to="/Gestion/Stock">Gestion des stocks</router-link>
         </li>
         <li>
-          <router-link to="/Gestion/Export">Export</router-link>
-        </li>
-        <li>
           <router-link to="/Gestion/Produits">Gestion des produits</router-link>
         </li>
-        <li></li>
         <li>
           <router-link to="/Gestion/Promotions">Gestion des promotions</router-link>
         </li>
