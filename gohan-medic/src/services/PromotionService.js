@@ -196,7 +196,7 @@ export async function addPromotion(promotionData, productId) {
     const startDate = new Date(promotionData.created_at);
     const endDate = new Date(promotionData.end_at);
 
-    if (startDate < currentDate || endDate < startDate) {
+    if (startDate <= currentDate || endDate < startDate) {
       throw new Error("Les dates de promotion ne sont pas valides.");
     }
 

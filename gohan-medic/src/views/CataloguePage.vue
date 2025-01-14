@@ -1,16 +1,25 @@
 <template>
-  <h1 class="catalogue-title">Catalogue</h1>
-  <div class="wrapper">
-    <div class="catalogue">
-      <template v-for="product in products" :key="product.id">
-        <!-- Affiche une ProductCard, qui gère la promotion en interne -->
-        <ProductCard :product="product" @click="openProductDetail(product)" />
-      </template>
+  <div>
+    <h1 class="catalogue-title">Catalogue</h1>
+
+    <!-- Barre de recherche -->
+    <div class="search-container">
+      <SearchBar v-model:searchQuery="searchQuery" />
+    </div>
+
+    <div class="wrapper">
+      <div class="catalogue">
+        <template v-for="product in filteredProducts" :key="product.id">
+          <!-- Affiche une ProductCard, qui gère la promotion en interne -->
+          <ProductCard :product="product" @click="openProductDetail(product)" />
+        </template>
+      </div>
     </div>
   </div>
 </template>
 
 <script>
+import SearchBar from "@/components/SearchBar/SearchBar.vue";
 import ProductCard from "@/components/Product/ProductCard.vue";
 import { fetchProducts, fetchProductByIdCategory } from "@/services/ProductService";
 import { fetchPromotionsForMultipleProducts } from "@/services/PromotionService";
@@ -19,11 +28,13 @@ import { useProductStore } from "@/stores/ProductStore";
 export default {
   name: "CataloguePage",
   components: {
+    SearchBar,
     ProductCard,
   },
   data() {
     return {
-      products: [],
+      searchQuery: "", // Requête de recherche
+      products: [], // Liste des produits
     };
   },
   async created() {
@@ -33,34 +44,31 @@ export default {
       let fetchedProducts;
 
       if (categoryId) {
-        // Récupérer les produits pour une catégorie spécifique
         fetchedProducts = await fetchProductByIdCategory(categoryId);
       } else {
-        // Récupérer tous les produits si aucune catégorie n'est spécifiée
         fetchedProducts = await fetchProducts();
       }
 
-      // Récupérer les promotions pour tous les produits
       const promotionsByProduct = await fetchPromotionsForMultipleProducts(
         fetchedProducts.map((product) => product.id)
       );
 
-      // Enrichir les produits avec les promotions si applicable
-      const enrichedProducts = fetchedProducts.map((product) => {
+      this.products = fetchedProducts.map((product) => {
         const promotion = promotionsByProduct[product.id];
-        if (promotion) {
-          return { ...product, promotion };
-        }
-        return product;
+        return promotion ? { ...product, promotion } : product;
       });
-
-      this.products = enrichedProducts;
     } catch (error) {
       console.error("Erreur lors du chargement des produits :", error);
     }
   },
+  computed: {
+    filteredProducts() {
+      return this.products.filter((product) =>
+        product.name.toLowerCase().includes(this.searchQuery.toLowerCase())
+      );
+    },
+  },
   watch: {
-    // Recharger les produits si la catégorie change
     "$route.query.category": "loadProducts",
   },
   methods: {
@@ -71,31 +79,23 @@ export default {
         let fetchedProducts;
 
         if (categoryId) {
-          // Récupérer les produits pour une catégorie spécifique
           fetchedProducts = await fetchProductByIdCategory(categoryId);
         } else {
-          // Récupérer tous les produits si aucune catégorie n'est spécifiée
           fetchedProducts = await fetchProducts();
         }
 
-        // Récupérer les promotions pour tous les produits en une seule requête
         const promotionsByProduct = await fetchPromotionsForMultipleProducts(
           fetchedProducts.map((product) => product.id)
         );
 
-        // Enrichir les produits avec leurs promotions
         this.products = fetchedProducts.map((product) => {
           const promotion = promotionsByProduct[product.id];
-          if (promotion) {
-            return { ...product, promotion };
-          }
-          return product;
+          return promotion ? { ...product, promotion } : product;
         });
       } catch (error) {
         console.error("Erreur lors de la mise à jour des produits :", error);
       }
     },
-
     openProductDetail(product) {
       const productStore = useProductStore();
       productStore.setProduct(product);
@@ -106,22 +106,27 @@ export default {
 </script>
 
 <style scoped>
-/* Titre du catalogue */
+/* Styles pour la barre de recherche */
+.search-container {
+  margin: 20px auto;
+  text-align: center;
+}
+
+/* Styles existants pour le catalogue */
 .catalogue-title {
   text-align: center;
   font-size: 2.5rem;
   font-weight: bold;
-  color: #2d9cdb; /* Bleu pharmaceutique */
+  color: #2d9cdb;
   margin-bottom: 30px;
   padding: 15px;
-  background-color: #e3f2fd; /* Bleu clair doux */
+  background-color: #e3f2fd;
   border-radius: 10px;
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
   text-transform: uppercase;
   letter-spacing: 1px;
 }
 
-/* Styles pour le catalogue */
 .catalogue {
   margin: auto;
   max-width: 1200px;
@@ -130,10 +135,9 @@ export default {
   gap: 1rem;
 }
 
-/* Réduction de la taille des cartes */
 .product-card {
-  width: 270px; /* Carte plus étroite */
-  height: 380px; /* Hauteur plus ajustée */
+  width: 270px;
+  height: 380px;
   margin: 0 auto;
   border-radius: 12px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -148,7 +152,6 @@ export default {
   box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
 }
 
-/* Style de l'image */
 .product-card img {
   width: 100%;
   height: 220px;
@@ -161,7 +164,6 @@ export default {
   opacity: 0.8;
 }
 
-/* Informations produit */
 .product-info {
   padding: 15px;
   text-align: center;
@@ -177,7 +179,7 @@ export default {
 .product-info span {
   font-size: 1.1rem;
   font-weight: 500;
-  color: #2d9cdb; /* Bleu clair */
+  color: #2d9cdb;
 }
 
 .product-description {
@@ -195,7 +197,6 @@ export default {
   .catalogue {
     grid-template-columns: repeat(3, 1fr);
   }
-
   .product-card {
     width: 250px;
   }
@@ -205,7 +206,6 @@ export default {
   .catalogue {
     grid-template-columns: repeat(2, 1fr);
   }
-
   .product-card {
     width: 220px;
   }
@@ -215,7 +215,6 @@ export default {
   .catalogue {
     grid-template-columns: 1fr;
   }
-
   .product-card {
     width: 100%;
   }

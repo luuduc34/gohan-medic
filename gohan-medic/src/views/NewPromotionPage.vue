@@ -20,11 +20,23 @@
       <input v-model="form.end_date" id="end_date" type="date" required />
 
       <label for="product_id">Produit associé</label>
-      <select v-model="form.product_id" id="product_id" required>
-        <option v-for="product in products" :key="product.id" :value="product.id">
-          {{ product.name }}
-        </option>
-      </select>
+      <div class="autocomplete" @focusin="showDropdown = true" @focusout="hideDropdown">
+        <input
+          v-model="searchQuery"
+          type="text"
+          placeholder="Rechercher un produit"
+          @input="filterProducts"
+        />
+        <ul v-if="showDropdown && filteredProducts.length > 0" class="dropdown">
+          <li
+            v-for="product in filteredProducts"
+            :key="product.id"
+            @mousedown.prevent="selectProduct(product)"
+          >
+            {{ product.name }}
+          </li>
+        </ul>
+      </div>
 
       <button type="submit">Ajouter</button>
     </form>
@@ -45,17 +57,38 @@ export default {
         end_date: "",
         product_id: "",
       },
-      products: [], // Liste des produits disponibles
+      products: [], // Liste complète des produits
+      filteredProducts: [], // Liste des produits filtrés
+      searchQuery: "", // Texte de recherche
+      showDropdown: false, // Contrôle l'affichage de la liste déroulante
     };
   },
   async created() {
     try {
-      this.products = await fetchProducts();
+      const fetchedProducts = await fetchProducts();
+      this.products = fetchedProducts.filter((product) => !product.is_promotion);
+      this.filteredProducts = this.products; // Par défaut, afficher tous les produits
     } catch (error) {
       console.error("Erreur lors du chargement des produits :", error);
     }
   },
   methods: {
+    filterProducts() {
+      const query = this.searchQuery.toLowerCase();
+      this.filteredProducts = this.products.filter((product) =>
+        product.name.toLowerCase().includes(query)
+      );
+    },
+    selectProduct(product) {
+      this.form.product_id = product.id;
+      this.searchQuery = product.name; // Met à jour le champ de recherche avec le nom sélectionné
+      this.showDropdown = false; // Cache la liste après sélection
+    },
+    hideDropdown() {
+      setTimeout(() => {
+        this.showDropdown = false;
+      }, 150); // Délai pour éviter la fermeture avant la sélection
+    },
     async handleSubmit() {
       try {
         const promotionData = {
@@ -63,14 +96,13 @@ export default {
           created_at: this.form.start_date,
           end_at: this.form.end_date,
         };
+
         if (new Date(this.form.start_date) > new Date(this.form.end_date)) {
           alert("La date de début ne peut pas être postérieure à la date de fin.");
           return;
         }
 
-        // Appeler la fonction pour ajouter la promotion
         await addPromotion(promotionData, this.form.product_id);
-
         alert("Promotion ajoutée avec succès !");
         this.$router.push("/Gestion/Promotions");
       } catch (error) {
@@ -111,7 +143,7 @@ label {
 }
 
 input,
-select {
+button {
   padding: 10px;
   margin-bottom: 15px;
   border: 1px solid #ccc;
@@ -120,17 +152,40 @@ select {
 }
 
 button {
-  padding: 10px;
   background-color: #2d9cdb;
   color: white;
   font-weight: bold;
-  border: none;
-  border-radius: 5px;
   cursor: pointer;
   transition: background-color 0.3s;
 }
 
 button:hover {
   background-color: #007bb5;
+}
+
+.autocomplete {
+  position: relative;
+}
+
+.dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  max-height: 200px;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  z-index: 1000;
+}
+
+.dropdown li {
+  padding: 10px;
+  cursor: pointer;
+}
+
+.dropdown li:hover {
+  background-color: #f0f0f0;
 }
 </style>

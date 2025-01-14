@@ -1,6 +1,5 @@
 import { createRouter, createWebHistory } from "vue-router";
 import { useUserStore } from "@/stores/UserStore";
-
 import AuthPage from "@/views/AuthPage.vue";
 import CataloguePage from "@/views/CataloguePage.vue";
 import HomePage from "@/views/HomePage.vue";
@@ -8,8 +7,7 @@ import PanierPage from "@/views/PanierPage.vue";
 import UnauthorizedPage from "@/views/UnauthorizedPage.vue";
 import PromotionPage from "@/views/PromotionPage.vue";
 import GestionPage from "@/views/GestionPage.vue";
-import StockPage from "@/views/StockPage.vue";
-import ExportCsvPage from "@/views/exportCsvPage.vue";
+import StockManagementPage from "@/views/StockManagementPage.vue";
 import ProductDetailPage from "@/views/ProduitDetailPage.vue";
 
 const routes = [
@@ -71,16 +69,9 @@ const routes = [
         props: true,
       },
       {
-        path: "Stock",
-        name: "Stock",
-        component: StockPage,
-        meta: { requiresAuth: true, requiresAdmin: true },
-      },
-      {
-        path: "Export",
-        name: "ExportCsvPage",
-        component: ExportCsvPage,
-        meta: { requiresAuth: true, requiresAdmin: true },
+        path: '/Gestion/Stock',
+        name: 'StockManagementPage',
+        component: StockManagementPage,
       },           
     ],
   },

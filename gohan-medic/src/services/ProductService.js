@@ -121,3 +121,13 @@ export async function checkStock(cart) {
     };
   }
 }
+
+export async function updateProductStock(productId, newStock) {
+  const { error } = await supabase
+    .from("product")
+    .update({ stock: newStock })
+    .eq("id", productId);
+  if (error) {
+    throw new Error("Erreur lors de la mise à jour du stock : " + error.message);
+  }
+}

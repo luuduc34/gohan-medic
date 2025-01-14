@@ -6,6 +6,11 @@
       <p>Vos solutions pharmaceutiques en ligne.</p>
     </header>
 
+    <!-- Section de recherche -->
+    <div class="search-container">
+      <SearchBar v-model:searchQuery="searchQuery" />
+    </div>
+
     <!-- Carrousel des nouveautés -->
     <section class="carousel-section">
       <h2>Nouveautés</h2>
@@ -15,7 +20,7 @@
         </button>
         <div class="carousel" ref="newProductsCarousel">
           <ProductCard
-            v-for="product in newProducts"
+            v-for="product in filteredNewProducts"
             :key="product.id"
             :product="product"
             @click="openProductDetail(product)"
@@ -36,7 +41,7 @@
         </button>
         <div class="carousel" ref="promotionsCarousel">
           <ProductCard
-            v-for="product in promotions"
+            v-for="product in filteredPromotions"
             :key="product.id"
             :product="product"
             @click="openProductDetail(product)"
@@ -51,6 +56,7 @@
 </template>
 
 <script>
+import SearchBar from "@/components/SearchBar/SearchBar.vue";
 import { fetchProducts } from "@/services/ProductService";
 import { fetchPromotionsForMultipleProducts } from "@/services/PromotionService";
 import ProductCard from "@/components/Product/ProductCard.vue";
@@ -59,34 +65,28 @@ import { useProductStore } from "@/stores/ProductStore";
 export default {
   name: "HomePage",
   components: {
+    SearchBar,
     ProductCard,
   },
   data() {
     return {
+      searchQuery: "", // Requête de recherche
       newProducts: [], // Nouveaux produits
       promotions: [], // Produits en promotion
     };
   },
   async created() {
     try {
-      // Récupérer tous les produits
       const allProducts = await fetchProducts();
-
-      // Récupérer les promotions pour tous les produits
       const promotionsByProduct = await fetchPromotionsForMultipleProducts(
         allProducts.map((product) => product.id)
       );
 
-      // Enrichir les produits avec leurs promotions si applicable
       const enrichedProducts = allProducts.map((product) => {
         const promotion = promotionsByProduct[product.id];
-        if (promotion) {
-          return { ...product, promotion };
-        }
-        return product;
+        return promotion ? { ...product, promotion } : product;
       });
 
-      // Filtrer les nouveaux produits (moins de 30 jours)
       const today = new Date();
       const thirtyDaysAgo = new Date(today);
       thirtyDaysAgo.setDate(today.getDate() - 30);
@@ -96,16 +96,27 @@ export default {
         return createdAt >= thirtyDaysAgo;
       });
 
-      // Les promotions sont les produits qui ont une promotion
       this.promotions = enrichedProducts.filter((product) => product.promotion);
     } catch (error) {
       console.error("Erreur lors du chargement des données :", error.message);
     }
   },
+  computed: {
+    filteredNewProducts() {
+      return this.newProducts.filter((product) =>
+        product.name.toLowerCase().includes(this.searchQuery.toLowerCase())
+      );
+    },
+    filteredPromotions() {
+      return this.promotions.filter((product) =>
+        product.name.toLowerCase().includes(this.searchQuery.toLowerCase())
+      );
+    },
+  },
   methods: {
     scrollCarousel(refName, direction) {
       const carousel = this.$refs[`${refName}Carousel`];
-      const scrollAmount = 300; // Distance à faire défiler
+      const scrollAmount = 300;
       carousel.scrollBy({
         left: direction === "left" ? -scrollAmount : scrollAmount,
         behavior: "smooth",
@@ -121,7 +132,13 @@ export default {
 </script>
 
 <style scoped>
-/* Section héroïque */
+/* Ajout de style pour le conteneur de recherche */
+.search-container {
+  margin: 20px auto;
+  text-align: center;
+}
+
+/* Section héroïque et autres styles */
 .hero-section {
   text-align: center;
   padding: 40px 20px;
@@ -139,7 +156,6 @@ export default {
   margin-top: 10px;
 }
 
-/* Section avec carrousel */
 .carousel-section {
   margin: 40px auto;
   max-width: 1200px;
@@ -152,14 +168,12 @@ export default {
   text-align: center;
 }
 
-/* Conteneur du carrousel avec les flèches */
 .carousel-container {
   position: relative;
   display: flex;
   align-items: center;
 }
 
-/* Carrousel */
 .carousel {
   display: flex;
   gap: 1rem;
@@ -181,11 +195,6 @@ export default {
   background: #f0f0f0;
 }
 
-.carousel > * {
-  flex: 0 0 auto;
-}
-
-/* Boutons de navigation */
 .arrow {
   position: absolute;
   top: 50%;
@@ -214,10 +223,5 @@ export default {
 
 .arrow:hover {
   background: #0056b3;
-}
-
-.arrow:disabled {
-  background: #ccc;
-  cursor: not-allowed;
 }
 </style>
