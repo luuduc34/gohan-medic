@@ -21,7 +21,6 @@
         <div class="price-section">
           <div class="size">
             <span>30 ml</span>
-            <span class="price-per-unit">21,67 € / 100 ml</span>
           </div>
           <!-- Vérifie si le produit est en promotion -->
           <div
@@ -72,6 +71,8 @@
 </template>
 
 <script>
+import { useBasketStore } from "@/stores/BasketStore";
+
 export default {
   name: "ProductDetailCard",
   props: {
@@ -79,6 +80,7 @@ export default {
       type: Object,
       required: true,
       default: () => ({
+        id: null,
         name: "Nom du produit",
         image: "https://via.placeholder.com/300x200",
         price: 0,
@@ -90,12 +92,34 @@ export default {
   },
   data() {
     return {
-      selectedQuantity: 1,
+      selectedQuantity: 1, // Quantité sélectionnée par l'utilisateur
     };
   },
   methods: {
     addToCart() {
-      alert(`Ajouté au panier : ${this.selectedQuantity} x ${this.product.name}`);
+      // Récupération du store panier
+      const basketStore = useBasketStore();
+
+      // Vérification du prix basé sur la promotion
+      const priceToUse =
+        this.product.is_promotion && this.product.promotion?.discountedPrice
+          ? this.product.promotion.discountedPrice
+          : this.product.price;
+
+      // Création de l'objet produit à ajouter
+      const productToAdd = {
+        id: this.product.id,
+        name: this.product.name,
+        image: this.product.picture,
+        price: priceToUse, // Utilisation du prix ajusté
+        quantity: this.selectedQuantity,
+      };
+
+      // Ajout du produit au panier via le store
+      basketStore.addItem(productToAdd);
+
+      // Affichage d'une confirmation
+      alert(`${this.selectedQuantity} x ${this.product.name} ajouté(s) au panier !`);
     },
   },
 };

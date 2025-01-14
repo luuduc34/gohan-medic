@@ -2,25 +2,28 @@ import { supabase } from "@/lib/supabaseClient";
 
 // Inscription avec email et mot de passe
 export async function registerWithEmail(email, password, nom, prenom) {
-  const { data: user, error } = await supabase.auth.signUp({ email, password });
+  try {
+    // Validation des entrées
+    if (!email || !password || !nom || !prenom) {
+      throw new Error("Tous les champs sont obligatoires.");
+    }
 
-  if (error) {
-    console.error("Erreur d'inscription:", error.message);
-    alert("Erreur : " + error.message);
-    return;
+    const { data: user, error } = await supabase.auth.signUp({ email, password });
+    if (error) throw new Error(error.message);
+
+    const { error: updateError } = await supabase.from("users").insert({
+      id: user.id,
+      email,
+      name: nom,
+      first_name: prenom,
+    });
+    if (updateError) throw new Error(updateError.message);
+
+    return user;
+  } catch (err) {
+    console.error("Erreur lors de l'inscription:", err.message);
+    throw err; // Renvoyer l'erreur pour un traitement personnalisé
   }
-
-  // Ajout des informations supplémentaires dans la table 'users'
-  const { error: updateError } = await supabase
-    .from("users")
-    .insert({ id: user.id, email, name: nom, first_name: prenom });
-
-  if (updateError) {
-    console.error("Erreur d'insertion dans la table users:", updateError.message);
-    throw new Error(updateError.message);
-  }
-
-  return user;
 }
 
 // Connexion avec email et mot de passe
@@ -62,29 +65,19 @@ export async function seeCurrentUser() {
 export async function checkAuthStatus() {
   try {
     const { data: { user }, error } = await supabase.auth.getUser();
-    if (error) {
-      console.error("Erreur lors de la vérification de l'utilisateur :", error.message);
-      return null;
-    }
+    if (error) throw new Error(error.message);
 
-    // Récupère les informations supplémentaires de l'utilisateur dans la table 'users'
     const { data: userData, error: userError } = await supabase
-      .from('users')
-      .select('*')
-      .eq('id', user.id)
+      .from("users")
+      .select("*")
+      .eq("id", user.id)
       .single();
+    if (userError) throw new Error(userError.message);
 
-    if (userError) {
-      console.error("Erreur lors de la récupération des informations utilisateur:", userError.message);
-      return null;
-    }
-
-    // On retourne l'utilisateur avec ses informations supplémentaires
-    return { ...user, profile: userData };
-  } 
-  catch (err) {
-    console.error("Erreur inattendue :", err.message);
-    return null;
+    return { ...user, profile: userData }; // Fusionne les données utilisateur
+  } catch (err) {
+    console.error("Erreur lors de la vérification de l'utilisateur:", err.message);
+    return null; // Retourne null en cas d'échec
   }
 }
 

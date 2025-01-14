@@ -49,8 +49,7 @@
 </template>
 
 <script>
-import { useUserStore } from "@/stores/UserStore";
-import { logout } from "@/services/UserService";
+import { useUserStore } from "@/stores/UserStore"; // Assurez-vous que l'importation est correcte
 import NavBar from "../NavBar/NavBar.vue";
 
 export default {
@@ -70,10 +69,10 @@ export default {
       const userStore = useUserStore();
       return userStore.isAuthenticated;
     },
-    // Vérifie si l'utilisateur a un rôle administrateur
+    // Vérifie si l'utilisateur a un rôle administrateur via le getter
     isAdmin() {
       const userStore = useUserStore();
-      return userStore.role === 2; // Role 2 correspond à un admin
+      return userStore.isAdmin; // Utilisation du getter pour récupérer l'admin status
     },
   },
   methods: {
@@ -87,15 +86,30 @@ export default {
     },
     // Déconnecte l'utilisateur
     async logoutUser() {
-      const success = await logout();
-      if (success) {
-        const userStore = useUserStore();
-        userStore.user = null;
-        userStore.isAuthenticated = false;
-        userStore.role = null;
-        this.$router.push("/");
+      const userStore = useUserStore();
+      await userStore.logoutUser(); // Utilisez l'action de déconnexion du store
+      this.$router.push("/");
+    },
+
+    // Vérifie le type de panier
+    checkPanierType() {
+      const userStore = useUserStore();
+
+      if (userStore.isAuthenticated) {
+        // Si l'utilisateur est authentifié, récupérez son ID et logguez
+        console.log("Panier utilisateur authentifié", {
+          userId: userStore.user.profile.id,
+        });
+      } else {
+        // Si l'utilisateur n'est pas authentifié, considérez le panier comme un panier invité
+        console.log("Panier invité", { guestId: this.getGuestCartId() });
       }
     },
+    // Simule la récupération d'un ID de panier invité
+    getGuestCartId() {
+      return localStorage.getItem("guestCartId") || "Aucun panier invité trouvé";
+    },
+
     // Navigation
     goToHome() {
       this.$router.push("/");
@@ -104,19 +118,18 @@ export default {
       this.$router.push("/Auth");
     },
     goToPanier() {
+      this.checkPanierType(); // Appelez la vérification avant de naviguer
       this.$router.push("/Panier");
     },
     goToGestion() {
       this.$router.push("/Gestion");
     },
   },
-
   watch: {
     // Surveille les changements d'authentification
     isAuthenticated(newVal) {
       if (!newVal) {
         this.showProfileDropdown = false; // Cache le menu déroulant si déconnecté
-        this.showCatalogDropdown = false;
       }
     },
   },

@@ -20,7 +20,7 @@ export async function fetchProducts(limit = null) {
   return product;
 }  
 
-  export async function fetchProductById(productId) {
+export async function fetchProductById(productId) {
     const { data, error } = await supabase
       .from('product')
       .select('*')
@@ -28,9 +28,9 @@ export async function fetchProducts(limit = null) {
       .single();
     if (error) throw error;
     return data;
-  }
+}
 
-  export async function fetchProductByIdCategory(categorieId) {
+export async function fetchProductByIdCategory(categorieId) {
     const { data, error } = await supabase
       .from('product')
       .select('*')
@@ -38,7 +38,7 @@ export async function fetchProducts(limit = null) {
       .eq('is_active', true);
     if (error) throw error;
     return data;
-  }
+}
 
   // Récupérer toutes les catégories
 export async function fetchCategories() {
@@ -82,4 +82,42 @@ export async function softDeleteProduct(productId) {
     throw new Error("Erreur lors de la suppression du produit : " + error.message);
   }
   return data;
+}
+
+// verification si stock commander (panier) est disponible 
+export async function checkStock(cart) {
+  try {
+    // Parcourir chaque article dans le panier pour vérifier le stock
+    for (const item of cart) {
+      const { data: product, error } = await supabase
+        .from('product')
+        .select('stock') // Récupérer uniquement le stock du produit
+        .eq('id', item.id) // Utiliser l'ID du produit dans le panier
+        .single();
+
+      if (error) {
+        throw new Error(`Erreur lors de la vérification du stock pour le produit ID ${item.id} : ${error.message}`);
+      }
+
+      // Vérifier si le stock est suffisant
+      if (!product || product.stock < item.quantity) {
+        return {
+          success: false,
+          message: `Le produit "${item.name}" n'est pas en stock ou la quantité demandée dépasse le stock disponible.`,
+        };
+      }
+    }
+
+    // Tous les articles sont en stock
+    return {
+      success: true,
+      message: "Tous les articles sont disponibles en stock.",
+    };
+  } catch (error) {
+    console.error("Erreur lors de la vérification du stock :", error);
+    return {
+      success: false,
+      message: "Une erreur s'est produite lors de la vérification des stocks.",
+    };
+  }
 }
