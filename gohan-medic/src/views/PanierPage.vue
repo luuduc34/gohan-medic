@@ -53,6 +53,24 @@
         </div>
       </div>
     </div>
+
+    <!-- Modal Paiement réussi -->
+    <div v-if="showSuccessModal" class="popup-overlay">
+      <div class="popup">
+        <h2>Paiement réussi !</h2>
+        <p>Merci pour votre commande.</p>
+        <button @click="closeSuccessModal">Fermer</button>
+      </div>
+    </div>
+
+    <!-- Modal de choix du moyen de paiement -->
+    <div v-if="showPaymentModal" class="popup-overlay">
+      <div class="popup">
+        <h2>Choisissez votre moyen de paiement</h2>
+        <PaypalButton @payment-success="onPaymentSuccess" />
+        <button @click="closePaymentModal">Annuler</button>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -61,17 +79,21 @@ import { useBasketStore } from "@/stores/BasketStore";
 import ProductBasketCard from "@/components/Product/ProductBasketCard";
 import { computed } from "vue";
 import { checkStock } from "@/services/ProductService";
+import PaypalButton from "@/components/paypal/PaypalButton";
 
 export default {
   name: "PanierPage",
   components: {
     ProductBasketCard,
+    PaypalButton, // Ajoutez le composant PaypalButton ici
   },
   data() {
     return {
       showConfirmPopup: false, // Contrôle l'affichage du popup
       itemToRemove: null, // Stocke l'ID du produit à supprimer
       showShippingInfo: false, // Contrôle l'affichage d'infos sur les frais de port
+      showPaymentModal: false, // Contrôle l'affichage de la modal de paiement
+      showSuccessModal: false, // Contrôle l'affichage de la modal de Succes de payement
     };
   },
   setup() {
@@ -131,12 +153,11 @@ export default {
         const result = await checkStock(this.basketStore.basketItems);
 
         if (result.success) {
-          // Tous les articles sont en stock, continuer la commande
-          console.log("Commande passée !");
-          this.basketStore.clearBasket();
+          // Tous les articles sont en stock, afficher la modal de paiement
+          this.showPaymentModal = true;
         } else {
           // Afficher un message d'erreur si des articles ne sont pas en stock
-          alert(result.message); // Vous pouvez remplacer l'alerte par un message dans l'interface utilisateur
+          alert(result.message);
         }
       } catch (error) {
         console.error("Erreur lors de la vérification du stock :", error);
@@ -154,6 +175,13 @@ export default {
       this.showConfirmPopup = false;
       this.itemToRemove = null;
     },
+    onPaymentSuccess() {
+      this.showPaymentModal = false; // Ferme la modal de paiement
+      this.showSuccessModal = true; // Ouvre la modal de succès
+    },
+    closeSuccessModal() {
+      this.showSuccessModal = false; // Ferme la modal de succès
+    },
     cancelRemove() {
       this.showConfirmPopup = false;
       this.itemToRemove = null;
@@ -161,8 +189,8 @@ export default {
     toggleShippingInfo() {
       this.showShippingInfo = !this.showShippingInfo;
     },
-    orderClicked() {
-      console.log("Commande passée !");
+    closePaymentModal() {
+      this.showPaymentModal = false;
     },
   },
 };
@@ -181,10 +209,10 @@ export default {
   text-align: center;
   font-size: 2.5rem;
   font-weight: bold;
-  color: #2d9cdb; /* Bleu pharmaceutique */
+  color: #2d9cdb;
   margin-bottom: 30px;
   padding: 15px;
-  background-color: #e3f2fd; /* Bleu clair doux */
+  background-color: #e3f2fd;
   border-radius: 10px;
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
   text-transform: uppercase;
@@ -196,8 +224,8 @@ export default {
   flex-direction: column;
   align-items: center;
   gap: 20px;
-  width: 100%; /* Assurez-vous que le conteneur occupe toute la largeur */
-  max-width: 1200px; /* Limite la largeur à 1200px */
+  width: 100%;
+  max-width: 1200px;
   margin: 0 auto; /* Centre le conteneur horizontalement */
 }
 
@@ -268,6 +296,10 @@ export default {
   border-radius: 10px;
   text-align: center;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.popup H2 {
+  color: #44c0f1;
 }
 
 .popup-buttons {
