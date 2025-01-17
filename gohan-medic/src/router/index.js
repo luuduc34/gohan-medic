@@ -9,6 +9,9 @@ import PromotionPage from "@/views/PromotionPage.vue";
 import GestionPage from "@/views/GestionPage.vue";
 import StockManagementPage from "@/views/StockManagementPage.vue";
 import ProductDetailPage from "@/views/ProduitDetailPage.vue";
+import PrescriptionUploadPage from "@/views/PrescriptionUploadPage.vue";
+import PrescriptionListPage from "@/views/PrescriptionListPage.vue";
+import OrdonnanceManagementPage from "@/views/OrdonnanceManagementPage.vue";
 
 const routes = [
   { 
@@ -99,6 +102,28 @@ const routes = [
     name: "Unauthorized",
     component: UnauthorizedPage,
   },
+  {
+    path: "/ordonnances",
+    name: "OrdonnancePage",
+    component: () => import("@/views/OrdonnancePage.vue"),
+  },  
+  {
+    path: "/ordonnance",
+    name: "PrescriptionListPage",
+    component: PrescriptionListPage, 
+  },  
+  {
+    path: "/ordonnance/upload", 
+    name: "PrescriptionUploadPage",
+    component: PrescriptionUploadPage, 
+  },
+  {
+    path: "/Gestion/Ordonnances",
+    name: "OrdonnanceManagementPage",
+    component: OrdonnanceManagementPage,
+    meta: { requiresAuth: true, requiresAdmin: true },
+  },
+  
 ];
 
 const router = createRouter({
