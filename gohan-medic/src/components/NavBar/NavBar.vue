@@ -30,26 +30,18 @@
           @mouseover="showGestionDropdown = true"
           @mouseleave="showGestionDropdown = false"
         >
-          <button class="dropbtn">Gestion</button>
+          <button class="dropbtn">
+            Gestion
+            <span v-if="pendingCount > 0" class="badge">{{ pendingCount }}</span>
+          </button>
           <div v-if="showGestionDropdown" class="dropdown-menu-nav">
             <button @click="goToGestionProduits">Produits</button>
             <button @click="goToGestionPromotions">Promotions</button>
             <button @click="goToGestionStock">Stock</button>
-            <button @click="goToGestionOrdonnances">Ordonnances</button>
-          </div>
-        </div>
-
-        <!-- Menu Ordonnances pour tous -->
-        <div
-          v-if="isAuthenticated && !isAdmin"
-          class="dropdown"
-          @mouseover="showGestionDropdown = true"
-          @mouseleave="showGestionDropdown = false"
-        >
-          <button class="dropbn">Ordonnances</button>
-          <div v-if="showGestionDropdown" class="dropdown-menu-nav">
-            <button @click="goToPrescriptionUpload">Téléverser une ordonnance</button>
-            <button @click="goToPrescriptionList">Mes ordonnances</button>
+            <button @click="goToGestionOrdonnances">
+              Ordonnances
+              <span v-if="pendingCount > 0" class="badge">{{ pendingCount }}</span>
+            </button>
           </div>
         </div>
       </div>
@@ -60,6 +52,7 @@
 <script>
 import { fetchCategoryProducts } from "@/services/CategoryProductService";
 import { useUserStore } from "@/stores/UserStore";
+import { fetchPendingPrescriptionsCount } from "@/services/PrescriptionService";
 
 export default {
   name: "NavBar",
@@ -70,6 +63,7 @@ export default {
       isOpen: false,
       screenWidth: window.innerWidth,
       categories: [],
+      pendingCount: 0,
     };
   },
   computed: {
@@ -84,6 +78,18 @@ export default {
     },
   },
   methods: {
+    async fetchPendingPrescriptions() {
+      try {
+        if (this.isAdmin) {
+          this.pendingCount = await fetchPendingPrescriptionsCount();
+        }
+      } catch (error) {
+        console.error(
+          "Erreur lors de la récupération des ordonnances en attente :",
+          error
+        );
+      }
+    },
     toggleMenu() {
       this.isOpen = !this.isOpen;
     },
@@ -106,12 +112,6 @@ export default {
     goToProm() {
       this.$router.push("/Promotion");
     },
-    goToPrescriptionUpload() {
-      this.$router.push("/ordonnance/upload");
-    },
-    goToPrescriptionList() {
-      this.$router.push("/ordonnance");
-    },
     goToGestionProduits() {
       this.$router.push("/Gestion/Produits");
     },
@@ -125,9 +125,10 @@ export default {
       this.$router.push("/Gestion/Ordonnances");
     },
   },
-  created() {
+  async created() {
     window.addEventListener("resize", this.updateScreenWidth);
     this.fetchCategories();
+    await this.fetchPendingPrescriptions();
   },
   unmounted() {
     window.removeEventListener("resize", this.updateScreenWidth);
@@ -173,12 +174,6 @@ export default {
   border-radius: 5px;
 }
 
-/* Ajoute une interaction au survol */
-.dropdown:hover .dropdown-menu-nav,
-.dropdown:focus-within .dropdown-menu-nav {
-  display: block;
-}
-
 /* Autres styles pour la navigation */
 .nav-container {
   display: flex;
@@ -187,7 +182,6 @@ export default {
   background-color: #f8f8f8;
 }
 
-/* Style pour le menu principal */
 .menu {
   list-style: none;
   margin: 0;
@@ -209,5 +203,15 @@ export default {
 .menu button:hover {
   background-color: #ddd;
   border-radius: 8px;
+}
+
+.badge {
+  background-color: #e74c3c;
+  color: white;
+  border-radius: 50%;
+  padding: 2px 8px;
+  font-size: 12px;
+  font-weight: bold;
+  margin-left: 8px;
 }
 </style>

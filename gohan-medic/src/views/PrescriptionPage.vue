@@ -1,5 +1,5 @@
 <template>
-  <div class="ordonnance-page">
+  <div class="prescription-page">
     <h1 class="page-title">Gestion des Ordonnances</h1>
     <div class="menu-container">
       <router-link to="/ordonnance/upload" class="menu-link"
@@ -12,12 +12,12 @@
 
 <script>
 export default {
-  name: "OrdonnancePage",
+  name: "PrescriptionPage",
 };
 </script>
 
 <style scoped>
-.ordonnance-page {
+.prescription-page {
   max-width: 600px;
   margin: 20px auto;
   text-align: center;

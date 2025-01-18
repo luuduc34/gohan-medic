@@ -11,7 +11,8 @@ import StockManagementPage from "@/views/StockManagementPage.vue";
 import ProductDetailPage from "@/views/ProduitDetailPage.vue";
 import PrescriptionUploadPage from "@/views/PrescriptionUploadPage.vue";
 import PrescriptionListPage from "@/views/PrescriptionListPage.vue";
-import OrdonnanceManagementPage from "@/views/OrdonnanceManagementPage.vue";
+import PrescriptionManagementPage from "@/views/PrescriptionManagementPage.vue";
+import PrescriptionPage from "@/views/PrescriptionPage.vue";
 
 const routes = [
   { 
@@ -105,7 +106,7 @@ const routes = [
   {
     path: "/ordonnances",
     name: "OrdonnancePage",
-    component: () => import("@/views/OrdonnancePage.vue"),
+    component: PrescriptionPage
   },  
   {
     path: "/ordonnance",
@@ -119,8 +120,8 @@ const routes = [
   },
   {
     path: "/Gestion/Ordonnances",
-    name: "OrdonnanceManagementPage",
-    component: OrdonnanceManagementPage,
+    name: "PrescriptionManagementPage",
+    component: PrescriptionManagementPage,
     meta: { requiresAuth: true, requiresAdmin: true },
   },
   
