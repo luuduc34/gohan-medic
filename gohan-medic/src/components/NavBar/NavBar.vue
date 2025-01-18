@@ -23,7 +23,7 @@
         </div>
         <button @click="goToProm">Promotion</button>
 
-        <!-- Menu Gestion -->
+        <!-- Menu Gestion pour l'administrateur -->
         <div
           v-if="isAdmin"
           class="dropdown"
@@ -44,6 +44,25 @@
             </button>
           </div>
         </div>
+
+        <!-- Menu Ordonnances pour les utilisateurs -->
+        <div
+          v-if="isAuthenticated && !isAdmin"
+          class="dropdown"
+          @mouseover="showOrdonnanceDropdown = true"
+          @mouseleave="showOrdonnanceDropdown = false"
+        >
+          <button class="dropbn">
+            Ordonnances
+            <span v-if="notificationCount > 0" class="badge">{{
+              notificationCount
+            }}</span>
+          </button>
+          <div v-if="showOrdonnanceDropdown" class="dropdown-menu-nav">
+            <button @click="goToPrescriptionUpload">Téléverser une ordonnance</button>
+            <button @click="goToPrescriptionList">Mes ordonnances</button>
+          </div>
+        </div>
       </div>
     </nav>
   </header>
@@ -60,10 +79,12 @@ export default {
     return {
       showCatalogDropdown: false,
       showGestionDropdown: false,
+      showOrdonnanceDropdown: false,
       isOpen: false,
       screenWidth: window.innerWidth,
       categories: [],
       pendingCount: 0,
+      notificationCount: 0,
     };
   },
   computed: {
@@ -81,7 +102,8 @@ export default {
     async fetchPendingPrescriptions() {
       try {
         if (this.isAdmin) {
-          this.pendingCount = await fetchPendingPrescriptionsCount();
+          const count = await fetchPendingPrescriptionsCount();
+          this.pendingCount = count;
         }
       } catch (error) {
         console.error(
@@ -111,6 +133,12 @@ export default {
     },
     goToProm() {
       this.$router.push("/Promotion");
+    },
+    goToPrescriptionUpload() {
+      this.$router.push("/ordonnance/upload");
+    },
+    goToPrescriptionList() {
+      this.$router.push("/ordonnance");
     },
     goToGestionProduits() {
       this.$router.push("/Gestion/Produits");

@@ -13,28 +13,28 @@
 
         <div class="actions">
           <button
-            v-if="prescription.status === 'pending'"
+            v-if="prescription.status === 'en attente'"
             class="approve-btn"
             @click="approvePrescription(prescription.prescription_id)"
           >
             Approuver
           </button>
           <button
-            v-if="prescription.status === 'pending'"
+            v-if="prescription.status === 'en attente'"
             class="reject-btn"
             @click="rejectPrescription(prescription.prescription_id)"
           >
             Rejeter
           </button>
           <button
-            v-if="prescription.status === 'approved'"
+            v-if="prescription.status === 'approuvée'"
             class="status-btn"
-            @click="updateStatus(prescription.prescription_id, 'préparation')"
+            @click="updateStatus(prescription.prescription_id, 'en préparation')"
           >
             Passer en préparation
           </button>
           <button
-            v-if="prescription.status === 'préparation'"
+            v-if="prescription.status === 'en préparation'"
             class="status-btn"
             @click="updateStatus(prescription.prescription_id, 'finalisée')"
           >
@@ -73,11 +73,33 @@ export default {
   methods: {
     async loadPrescriptions() {
       try {
-        this.prescriptions = await fetchPrescriptions();
+        const prescriptions = await fetchPrescriptions();
+
+        // Priorité explicite des statuts
+        const statusPriority = {
+          "en attente": 1,
+          approuvée: 2,
+          "en préparation": 3,
+          finalisée: 4,
+          délivrée: 5,
+        };
+
+        // Appliquer le tri en deux étapes : statut et date de création
+        this.prescriptions = prescriptions.sort((a, b) => {
+          // Trier par priorité de statut
+          const statusDiff =
+            (statusPriority[a.status] || 100) - (statusPriority[b.status] || 100);
+          if (statusDiff !== 0) {
+            return statusDiff;
+          }
+          // Si les statuts sont identiques, trier par date de création (décroissant)
+          return new Date(b.created_at) - new Date(a.created_at);
+        });
       } catch (error) {
         console.error("Erreur lors du chargement des ordonnances :", error);
       }
     },
+
     async approvePrescription(prescription_id) {
       try {
         await updatePrescriptionStatus(prescription_id, "approved");

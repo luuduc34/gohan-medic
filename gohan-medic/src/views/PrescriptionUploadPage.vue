@@ -25,7 +25,6 @@
 
 <script>
 import { supabase } from "@/lib/supabaseClient";
-import { useUserStore } from "@/stores/UserStore";
 
 export default {
   name: "PrescriptionUploadPage",
@@ -46,82 +45,39 @@ export default {
           return;
         }
 
-        console.log("Début du téléversement du fichier...");
-
         const fileName = `${Date.now()}_${this.selectedFile.name}`;
         const { error: uploadError } = await supabase.storage
           .from("prescriptions")
           .upload(fileName, this.selectedFile);
 
-        if (uploadError) {
-          console.error("Erreur lors du téléversement du fichier :", uploadError.message);
-          throw new Error(
-            "Erreur lors du téléversement du fichier : " + uploadError.message
-          );
-        }
-        console.log("User ID:", useUserStore.user?.id);
-
-        console.log("Téléversement réussi. Récupération de l'URL publique...");
+        if (uploadError) throw uploadError;
 
         const { data: publicUrlData, error: urlError } = supabase.storage
           .from("prescriptions")
           .getPublicUrl(fileName);
 
-        if (urlError) {
-          console.error(
-            "Erreur lors de la récupération de l'URL publique :",
-            urlError.message
-          );
-          throw new Error(
-            "Erreur lors de la récupération de l'URL publique : " + urlError.message
-          );
-        }
+        if (urlError) throw urlError;
 
-        const publicURL = publicUrlData.publicUrl;
+        const userId = (await supabase.auth.getUser()).data.user.id;
 
-        if (!publicURL) {
-          throw new Error(
-            "L'URL publique est introuvable. Vérifiez la configuration du bucket."
-          );
-        }
-
-        console.log("URL publique récupérée :", publicURL);
-
-        // Récupérer l'utilisateur connecté
-        const { data: userData, error: userError } = await supabase.auth.getUser();
-
-        if (userError) {
-          console.error(
-            "Erreur lors de la récupération de l'utilisateur :",
-            userError.message
-          );
-          throw new Error("Impossible de récupérer les informations utilisateur.");
-        }
-
-        // Assurez-vous que l'utilisateur est défini
-        if (!userData?.user) {
-          throw new Error("Utilisateur non authentifié. Connectez-vous pour continuer.");
-        }
-
-        const userId = userData.user.id; // Récupère l'ID de l'utilisateur
-        console.log("ID utilisateur :", userId);
-
-        // Utiliser `userId` dans l'insertion en base de données
         const { error: insertError } = await supabase.from("prescription").insert({
-          user_id: userId, // Utilise l'ID récupéré ici
-          file_url: publicURL,
-          status: "pending",
+          user_id: userId,
+          file_url: publicUrlData.publicUrl,
+          status: "en attente",
           comment: this.comment,
           created_at: new Date(),
         });
 
-        if (insertError) {
-          console.error("Erreur lors de l'insertion en base :", insertError.message);
-          throw new Error("Erreur lors de l'insertion en base : " + insertError.message);
-        }
+        if (insertError) throw insertError;
 
         alert("Ordonnance téléversée avec succès !");
         this.$router.push("/ordonnance");
+
+        // Rafraîchir les notifications dans la NavBar
+        const navBar = this.$root.$refs.navBar; // Récupère la NavBar depuis App.vue
+        if (navBar && navBar.fetchPendingPrescriptions) {
+          await navBar.fetchPendingPrescriptions(); // Met à jour les notifications
+        }
       } catch (error) {
         console.error("Erreur globale :", error.message);
         alert("Une erreur est survenue : " + error.message);
