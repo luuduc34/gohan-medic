@@ -102,7 +102,7 @@ export default {
 
     async approvePrescription(prescription_id) {
       try {
-        await updatePrescriptionStatus(prescription_id, "approved");
+        await updatePrescriptionStatus(prescription_id, "appouvée");
         this.loadPrescriptions();
         alert("Prescription approuvée !");
       } catch (error) {
