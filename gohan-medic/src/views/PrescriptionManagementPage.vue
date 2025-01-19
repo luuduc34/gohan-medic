@@ -86,6 +86,14 @@ export default {
 
         // Appliquer le tri en deux étapes : statut et date de création
         this.prescriptions = prescriptions.sort((a, b) => {
+          // Compte les ordonnances restantes
+          const pendingCount = prescriptions.filter((p) => p.status === "en attente")
+            .length;
+
+          // Envoie la mise à jour globale pour la NavBar
+          window.dispatchEvent(
+            new CustomEvent("updatePendingCount", { detail: pendingCount })
+          );
           // Trier par priorité de statut
           const statusDiff =
             (statusPriority[a.status] || 100) - (statusPriority[b.status] || 100);
@@ -99,23 +107,34 @@ export default {
         console.error("Erreur lors du chargement des ordonnances :", error);
       }
     },
-
     async approvePrescription(prescription_id) {
       try {
-        await updatePrescriptionStatus(prescription_id, "appouvée");
-        this.loadPrescriptions();
+        await updatePrescriptionStatus(prescription_id, "approuvée");
+        await this.loadPrescriptions();
+
+        // Compte les ordonnances restantes avec le statut "en attente"
+        const pendingCount = this.prescriptions.filter((p) => p.status === "en attente")
+          .length;
+
+        // Envoie la valeur correcte via l'événement global
+        window.dispatchEvent(
+          new CustomEvent("updatePendingCount", { detail: pendingCount })
+        );
+
         alert("Prescription approuvée !");
       } catch (error) {
         console.error("Erreur lors de l'approbation :", error);
         alert("Impossible d'approuver la prescription.");
       }
     },
+
     async rejectPrescription(prescription_id) {
       const reason = prompt("Indiquez la raison du rejet :");
       if (!reason) return;
       try {
         await updatePrescriptionStatus(prescription_id, "rejetée", reason);
-        this.loadPrescriptions();
+        await this.loadPrescriptions();
+        window.dispatchEvent(new Event("updatePendingCount")); // Déclenche l'update
         alert("Prescription rejetée !");
       } catch (error) {
         console.error("Erreur lors du rejet :", error);
@@ -125,7 +144,8 @@ export default {
     async updateStatus(prescription_id, newStatus) {
       try {
         await updatePrescriptionStatus(prescription_id, newStatus);
-        this.loadPrescriptions();
+        await this.loadPrescriptions();
+        window.dispatchEvent(new Event("updatePendingCount")); // Déclenche l'update
         alert(`Statut mis à jour : ${newStatus}`);
       } catch (error) {
         console.error("Erreur lors de la mise à jour du statut :", error);

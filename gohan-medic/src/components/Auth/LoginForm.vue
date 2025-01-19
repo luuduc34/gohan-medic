@@ -23,43 +23,39 @@
 </template>
 
 <script>
-  // Importation des services et du store utilisateur
-  import { loginWithEmail } from '@/services/UserService'; // Fonction pour gérer la connexion
-  import { useUserStore } from '@/stores/UserStore'; // Store utilisateur pour gérer l'état global
+// Importation des services et du store utilisateur
+import { loginWithEmail } from "@/services/UserService"; // Fonction pour gérer la connexion
+import { useUserStore } from "@/stores/UserStore"; // Store utilisateur pour gérer l'état global
 
-  export default {
-    // Définition des données utilisées dans le formulaire
-    data() {
-      return {
-        email: "", // Stocke l'email de l'utilisateur
-        password: "", // Stocke le mot de passe de l'utilisateur
-      };
-    },
-    methods: {
-      // Méthode pour gérer la connexion
-      async handleLogin() {
-        try {
-          // Appel au service de connexion avec email et mot de passe
-          const user = await loginWithEmail(this.email, this.password);
+export default {
+  data() {
+    return {
+      email: "", // Stocke l'email de l'utilisateur
+      password: "", // Stocke le mot de passe de l'utilisateur
+    };
+  },
+  methods: {
+    async handleLogin() {
+      try {
+        // Connexion avec email et mot de passe
+        const user = await loginWithEmail(this.email, this.password);
 
-          if (user) {
-            // Si la connexion est réussie, on met à jour le store utilisateur
-            const userStore = useUserStore();
-            userStore.fetchUser(user); // Mise à jour de l'état utilisateur dans Pinia
+        if (user) {
+          // Mise à jour du store utilisateur
+          const userStore = useUserStore();
+          userStore.fetchUser(user);
 
-            // Redirection vers la page d'accueil
-            this.$router.push('/');
-          } else {
-            // Affiche une alerte si les identifiants sont incorrects
-            alert("Échec de l'authentification. Veuillez vérifier vos identifiants.");
-          }
-        } catch (error) {
-          // Gestion des erreurs (par exemple, problème réseau ou serveur)
-          alert("Erreur : " + error.message);
+          // Redirection vers la page d'accueil
+          this.$router.push("/");
+        } else {
+          alert("Échec de l'authentification. Veuillez vérifier vos identifiants.");
         }
-      },
+      } catch (error) {
+        alert("Erreur : " + error.message);
+      }
     },
-  };
+  },
+};
 </script>
 
 <style scoped>

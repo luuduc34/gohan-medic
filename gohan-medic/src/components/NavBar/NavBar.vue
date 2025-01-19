@@ -103,7 +103,8 @@ export default {
       try {
         if (this.isAdmin) {
           const count = await fetchPendingPrescriptionsCount();
-          this.pendingCount = count;
+          console.log("Nombre d'ordonnances en attente (NavBar) :", count); // Vérifie la valeur
+          this.pendingCount = count || 0; // Assurez-vous que la valeur est définie
         }
       } catch (error) {
         console.error(
@@ -112,6 +113,7 @@ export default {
         );
       }
     },
+
     toggleMenu() {
       this.isOpen = !this.isOpen;
     },
@@ -153,12 +155,28 @@ export default {
       this.$router.push("/Gestion/Ordonnances");
     },
   },
-  async created() {
+  created() {
+    window.addEventListener("updatePendingCount", (event) => {
+      // Assure-toi que la valeur transmise est correcte
+      if (event.detail !== undefined) {
+        this.pendingCount = event.detail;
+      }
+      console.log("Notifications mises à jour via événement global :", this.pendingCount);
+    });
+
     window.addEventListener("resize", this.updateScreenWidth);
     this.fetchCategories();
-    await this.fetchPendingPrescriptions();
+    this.fetchPendingPrescriptions(); // Chargement initial
   },
-  unmounted() {
+
+  watch: {
+    $route() {
+      // Recharge le nombre d'ordonnances en attente à chaque changement de route
+      this.fetchPendingPrescriptions();
+    },
+  },
+  beforeUnmount() {
+    window.removeEventListener("updatePendingCount", this.fetchPendingPrescriptions);
     window.removeEventListener("resize", this.updateScreenWidth);
   },
 };

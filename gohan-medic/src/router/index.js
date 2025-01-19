@@ -151,8 +151,14 @@ router.beforeEach(async (to, from, next) => {
     }
   }
 
+  // Ajout du hook pour déclencher un événement ou mettre à jour les notifications
+  if (to.path.startsWith("/Gestion")) {
+    window.dispatchEvent(new Event("updatePendingCount")); // Émet un événement global
+  }
+
   // Si aucune condition n'est bloquante, continue la navigation
   next();
 });
+
 
 export default router;

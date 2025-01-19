@@ -2,6 +2,7 @@ import { defineStore } from "pinia";
 import { checkAuthStatus, logout } from "@/services/UserService";
 import { BasketService } from "@/services/BasketService";
 import { useBasketStore } from "./BasketStore";
+import { fetchPendingPrescriptionsCount } from "@/services/PrescriptionService";
 
 export const useUserStore = defineStore("user", {
   state: () => ({
@@ -9,6 +10,7 @@ export const useUserStore = defineStore("user", {
     isAuthenticated: false, // Indicateur pour savoir si l'utilisateur est connecté ou non
     role: null,             // Rôle utilisateur (1: Client, 2: Admin)
     error: null,            // Contiendra les erreurs rencontrées
+    pendingCount: 0,
   }),
 
   getters: {
@@ -45,6 +47,16 @@ export const useUserStore = defineStore("user", {
           this.isAuthenticated = true;           // Marquer l'utilisateur comme connecté
           this.role = user.profile.id_role_user; // Stocker le rôle utilisateur
           this.error = null;                     // Réinitialiser les erreurs
+
+          // Si l'utilisateur est un administrateur, récupérez les notifications
+          if (this.isAdmin) {
+            const pendingCount = await fetchPendingPrescriptionsCount();
+            this.pendingCount = pendingCount || 0;
+            console.log("Notifications mises à jour (Admin) :", this.pendingCount);
+
+            // Émettez un événement global si nécessaire
+            window.dispatchEvent(new CustomEvent("updatePendingCount", { detail: this.pendingCount }));
+          }
 
           // Charger le panier de l'utilisateur
           const basketStore = useBasketStore();  // Accéder au store du panier
@@ -89,6 +101,7 @@ export const useUserStore = defineStore("user", {
       this.isAuthenticated = false;
       this.role = null;
       this.error = null;
+      this.pendingCount = 0;
     },
   },
 

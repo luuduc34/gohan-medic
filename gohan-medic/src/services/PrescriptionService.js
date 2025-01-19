@@ -22,24 +22,26 @@ export const fetchPrescriptions = async () => {
 
 export async function fetchPendingPrescriptionsCount() {
   try {
-    const { count, error } = await supabase
+    const { data, count, error } = await supabase
       .from("prescription")
-      .select("prescription_id", { count: "exact" })
-      .eq("status", "en attente"); // Statut traduit
+      .select("*", { count: "exact" }) // Récupérer aussi les données pour vérifier
+      .eq("status", "en attente"); // Filtrer par statut exact
 
-    console.log("Nombre d'ordonnances en attente :", count);
+    console.log("Ordonnances récupérées avec statut 'en attente' :", data); 
+    console.log("Nombre d'ordonnances comptées :", count);
 
     if (error) {
       console.error("Erreur lors de la récupération des ordonnances en attente :", error);
       throw error;
     }
 
-    return count;
+    return count || 0; // Retourner 0 si count est null
   } catch (error) {
     console.error("Erreur globale dans fetchPendingPrescriptionsCount :", error);
     throw error;
   }
 }
+
 
 export const updatePrescriptionStatus = async (prescriptionId, status, reason = null) => {
   try {

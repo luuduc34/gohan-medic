@@ -47,7 +47,8 @@ export default {
       const { data, error } = await supabase
         .from("prescription")
         .select("*")
-        .eq("user_id", userId);
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false }); // Tri décroissant
 
       if (error) {
         console.error("Erreur lors de la récupération des ordonnances :", error.message);
