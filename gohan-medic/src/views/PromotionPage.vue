@@ -109,7 +109,7 @@ export default {
 /* Catalogue */
 .catalogue {
   display: grid;
-  grid-template-columns: repeat(5, 1fr); /* 5 colonnes */
+  grid-template-columns: repeat(4, 1fr); /* 5 colonnes */
   gap: 1rem;
   padding: 10px;
 }

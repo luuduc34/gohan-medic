@@ -5,7 +5,6 @@
         <div class="bar"></div>
       </div>
       <div class="menu" :class="{ show: isOpen }">
-        <!-- Menu déroulant pour Catalogue -->
         <div
           class="dropdown"
           @mouseover="showCatalogDropdown = true"
@@ -13,7 +12,6 @@
         >
           <button @click="goToCat">Catalogue</button>
           <div v-if="showCatalogDropdown" class="dropdown-menu-nav">
-            <!-- Boutons pour chaque catégorie -->
             <button
               v-for="category in categories"
               :key="category.id"
@@ -24,6 +22,47 @@
           </div>
         </div>
         <button @click="goToProm">Promotion</button>
+
+        <!-- Menu Gestion pour l'administrateur -->
+        <div
+          v-if="isAdmin"
+          class="dropdown"
+          @mouseover="showGestionDropdown = true"
+          @mouseleave="showGestionDropdown = false"
+        >
+          <button class="dropbtn">
+            Gestion
+            <span v-if="pendingCount > 0" class="badge">{{ pendingCount }}</span>
+          </button>
+          <div v-if="showGestionDropdown" class="dropdown-menu-nav">
+            <button @click="goToGestionProduits">Produits</button>
+            <button @click="goToGestionPromotions">Promotions</button>
+            <button @click="goToGestionStock">Stock</button>
+            <button @click="goToGestionOrdonnances">
+              Ordonnances
+              <span v-if="pendingCount > 0" class="badge">{{ pendingCount }}</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Menu Ordonnances pour les utilisateurs -->
+        <div
+          v-if="isAuthenticated && !isAdmin"
+          class="dropdown"
+          @mouseover="showOrdonnanceDropdown = true"
+          @mouseleave="showOrdonnanceDropdown = false"
+        >
+          <button class="dropbn">
+            Ordonnances
+            <span v-if="notificationCount > 0" class="badge">{{
+              notificationCount
+            }}</span>
+          </button>
+          <div v-if="showOrdonnanceDropdown" class="dropdown-menu-nav">
+            <button @click="goToPrescriptionUpload">Téléverser une ordonnance</button>
+            <button @click="goToPrescriptionList">Mes ordonnances</button>
+          </div>
+        </div>
       </div>
     </nav>
   </header>
@@ -31,63 +70,120 @@
 
 <script>
 import { fetchCategoryProducts } from "@/services/CategoryProductService";
+import { useUserStore } from "@/stores/UserStore";
+import { fetchPendingPrescriptionsCount } from "@/services/PrescriptionService";
 
 export default {
   name: "NavBar",
   data() {
     return {
-      showCatalogDropdown: false, // Contrôle le menu déroulant catalogue
-      isOpen: false, // État du menu (fermé par défaut)
-      screenWidth: window.innerWidth, // Largeur actuelle de l'écran
-      categories: [], // Stocke les catégories récupérées
+      showCatalogDropdown: false,
+      showGestionDropdown: false,
+      showOrdonnanceDropdown: false,
+      isOpen: false,
+      screenWidth: window.innerWidth,
+      categories: [],
+      pendingCount: 0,
+      notificationCount: 0,
     };
   },
+  computed: {
+    userStore() {
+      return useUserStore();
+    },
+    isAuthenticated() {
+      return this.userStore.isAuthenticated;
+    },
+    isAdmin() {
+      return this.userStore.isAdmin;
+    },
+  },
   methods: {
+    async fetchPendingPrescriptions() {
+      try {
+        if (this.isAdmin) {
+          const count = await fetchPendingPrescriptionsCount();
+          console.log("Nombre d'ordonnances en attente (NavBar) :", count); // Vérifie la valeur
+          this.pendingCount = count || 0; // Assurez-vous que la valeur est définie
+        }
+      } catch (error) {
+        console.error(
+          "Erreur lors de la récupération des ordonnances en attente :",
+          error
+        );
+      }
+    },
+
     toggleMenu() {
-      this.isOpen = !this.isOpen; // Inverse l'état du menu
+      this.isOpen = !this.isOpen;
     },
     async fetchCategories() {
       const categories = await fetchCategoryProducts();
       this.categories = categories;
     },
     handleCategoryClick(categoryId) {
-      console.log("Catégorie sélectionnée :", categoryId);
       this.$router.push({ name: "CataloguePage", query: { category: categoryId } });
     },
-
-    // Fonction pour mettre à jour la largeur de l'écran
     updateScreenWidth() {
       this.screenWidth = window.innerWidth;
-      // Si l'écran est assez large (par exemple, >= 1200px), fermez le menu
       if (this.screenWidth >= 1200) {
         this.isOpen = false;
       }
     },
-
-    // Navigation
     goToCat() {
       this.$router.push("/Catalogue");
     },
     goToProm() {
       this.$router.push("/Promotion");
     },
+    goToPrescriptionUpload() {
+      this.$router.push("/ordonnance/upload");
+    },
+    goToPrescriptionList() {
+      this.$router.push("/ordonnance");
+    },
+    goToGestionProduits() {
+      this.$router.push("/Gestion/Produits");
+    },
+    goToGestionPromotions() {
+      this.$router.push("/Gestion/Promotions");
+    },
+    goToGestionStock() {
+      this.$router.push("/Gestion/Stock");
+    },
+    goToGestionOrdonnances() {
+      this.$router.push("/Gestion/Ordonnances");
+    },
   },
-
   created() {
-    // Écoutez les changements de taille de la fenêtre
-    window.addEventListener("resize", this.updateScreenWidth);
+    window.addEventListener("updatePendingCount", (event) => {
+      // Assure-toi que la valeur transmise est correcte
+      if (event.detail !== undefined) {
+        this.pendingCount = event.detail;
+      }
+      console.log("Notifications mises à jour via événement global :", this.pendingCount);
+    });
 
+    window.addEventListener("resize", this.updateScreenWidth);
     this.fetchCategories();
+    this.fetchPendingPrescriptions(); // Chargement initial
   },
 
-  unmounted() {
-    // Nettoyez l'écouteur d'événements lors de la destruction du composant
+  watch: {
+    $route() {
+      // Recharge le nombre d'ordonnances en attente à chaque changement de route
+      this.fetchPendingPrescriptions();
+    },
+  },
+  beforeUnmount() {
+    window.removeEventListener("updatePendingCount", this.fetchPendingPrescriptions);
     window.removeEventListener("resize", this.updateScreenWidth);
   },
 };
 </script>
 
 <style>
+/* Styles pour le menu déroulant Ordonnances */
 .dropdown {
   position: relative;
   z-index: 9000;
@@ -96,7 +192,7 @@ export default {
 .dropdown-menu-nav {
   position: absolute;
   top: 100%;
-  left: 10px;
+  left: 0;
   background-color: white;
   border: 1px solid #ccc;
   border-radius: 8px;
@@ -107,7 +203,7 @@ export default {
 
 .dropdown-menu-nav button {
   display: block;
-  margin: 0 10px;
+  margin: 5px 0;
   width: 100%;
   background: none;
   border: none;
@@ -124,14 +220,7 @@ export default {
   border-radius: 5px;
 }
 
-/* Affiche le menu déroulant au survol du bouton */
-.dropdown:focus-within .dropdown-menu-nav,
-.dropdown:hover .dropdown-menu-nav,
-.dropdown-menu-nav:hover {
-  display: block;
-}
-
-/* Navigation principale */
+/* Autres styles pour la navigation */
 .nav-container {
   display: flex;
   position: relative;
@@ -139,148 +228,36 @@ export default {
   background-color: #f8f8f8;
 }
 
-/* Bouton menu burger */
-.menu-toggle {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  left: 20px;
-  width: 40px;
-  height: 40px;
-  cursor: pointer;
-  position: relative;
-}
-
-.bar {
-  width: 30px;
-  height: 3px;
-  background-color: #333;
-  position: absolute;
-  transition: all 0.3s ease-in-out;
-}
-
-.bar::before,
-.bar::after {
-  content: "";
-  width: 30px;
-  height: 3px;
-  background-color: #333;
-  position: absolute;
-  left: 0;
-  transition: all 0.3s ease-in-out;
-}
-
-.bar::before {
-  top: -8px;
-}
-
-.bar::after {
-  bottom: -8px;
-}
-
-/* État ouvert (croix) */
-.menu-toggle.open .bar {
-  background-color: transparent;
-}
-
-.menu-toggle.open .bar::before {
-  transform: rotate(45deg);
-  top: 0;
-}
-
-.menu-toggle.open .bar::after {
-  transform: rotate(-45deg);
-  bottom: 0;
-}
-
-/* Menu */
 .menu {
   list-style: none;
   margin: 0;
-  position: absolute;
-  top: 40px;
-  left: 10px;
-  background: #f8f8f8;
-  border-radius: 8px;
-  border: 1px solid #ddd;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  display: none; /* Menu masqué par défaut */
-  flex-direction: column; /* Par défaut, le menu est en colonne */
-  z-index: 1000;
-}
-
-.menu.show {
   display: flex;
+  flex-direction: row;
 }
 
 .menu button {
   background: none;
   border: none;
   padding: 10px 20px;
-  text-align: left;
+  text-align: center;
   color: #333;
   font-size: 16px;
   cursor: pointer;
-  border-bottom: 1px solid #ddd;
+  transition: background-color 0.3s;
 }
 
 .menu button:hover {
-  background-color: #f0f0f0;
+  background-color: #ddd;
+  border-radius: 8px;
 }
 
-.menu button:last-child {
-  border-bottom: none;
-}
-
-/* Transition pour le menu */
-.menu.show {
-  animation: slideDown 0.3s ease-in-out;
-}
-
-@keyframes slideDown {
-  from {
-    transform: translateY(-20px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-/* Lorsque l'écran est supérieur à 1200px */
-@media (min-width: 1200px) {
-  .menu {
-    display: flex;
-    position: static;
-    top: auto;
-    left: auto;
-    flex-direction: row;
-    background: none;
-    box-shadow: none;
-    border: none;
-  }
-
-  .menu button {
-    border-bottom: none;
-    margin: 0 10px;
-  }
-
-  /* Cacher le bouton burger */
-  .menu-toggle {
-    display: none;
-  }
-}
-
-/* Lorsque l'écran est inférieur à 1200px */
-@media (max-width: 1199px) {
-  .menu {
-    display: none;
-    flex-direction: column;
-  }
-
-  .menu.show {
-    display: flex;
-  }
+.badge {
+  background-color: #e74c3c;
+  color: white;
+  border-radius: 50%;
+  padding: 2px 8px;
+  font-size: 12px;
+  font-weight: bold;
+  margin-left: 8px;
 }
 </style>

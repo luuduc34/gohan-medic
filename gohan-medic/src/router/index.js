@@ -9,6 +9,10 @@ import PromotionPage from "@/views/PromotionPage.vue";
 import GestionPage from "@/views/GestionPage.vue";
 import StockManagementPage from "@/views/StockManagementPage.vue";
 import ProductDetailPage from "@/views/ProduitDetailPage.vue";
+import PrescriptionUploadPage from "@/views/PrescriptionUploadPage.vue";
+import PrescriptionListPage from "@/views/PrescriptionListPage.vue";
+import PrescriptionManagementPage from "@/views/PrescriptionManagementPage.vue";
+import PrescriptionPage from "@/views/PrescriptionPage.vue";
 
 const routes = [
   { 
@@ -99,6 +103,28 @@ const routes = [
     name: "Unauthorized",
     component: UnauthorizedPage,
   },
+  {
+    path: "/ordonnances",
+    name: "OrdonnancePage",
+    component: PrescriptionPage
+  },  
+  {
+    path: "/ordonnance",
+    name: "PrescriptionListPage",
+    component: PrescriptionListPage, 
+  },  
+  {
+    path: "/ordonnance/upload", 
+    name: "PrescriptionUploadPage",
+    component: PrescriptionUploadPage, 
+  },
+  {
+    path: "/Gestion/Ordonnances",
+    name: "PrescriptionManagementPage",
+    component: PrescriptionManagementPage,
+    meta: { requiresAuth: true, requiresAdmin: true },
+  },
+  
 ];
 
 const router = createRouter({
@@ -125,8 +151,14 @@ router.beforeEach(async (to, from, next) => {
     }
   }
 
+  // Ajout du hook pour déclencher un événement ou mettre à jour les notifications
+  if (to.path.startsWith("/Gestion")) {
+    window.dispatchEvent(new Event("updatePendingCount")); // Émet un événement global
+  }
+
   // Si aucune condition n'est bloquante, continue la navigation
   next();
 });
+
 
 export default router;

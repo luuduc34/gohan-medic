@@ -35,10 +35,6 @@
           <!-- Ligne de séparation -->
           <button>Mes commandes</button>
           <!-- Accès aux commandes utilisateur -->
-          <button>Mes favoris</button>
-          <!-- Accès aux favoris utilisateur -->
-          <!-- Bouton Gestion visible uniquement si l'utilisateur est admin -->
-          <button v-if="isAdmin" @click="goToGestion">Gestion</button>
         </div>
       </div>
     </div>
@@ -120,9 +116,6 @@ export default {
     goToPanier() {
       this.checkPanierType(); // Appelez la vérification avant de naviguer
       this.$router.push("/Panier");
-    },
-    goToGestion() {
-      this.$router.push("/Gestion");
     },
   },
   watch: {
