@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabaseClient";
+import { checkAdresse } from "./AdresseService";
 
 // Inscription avec email et mot de passe
 export async function registerWithEmail(email, password, nom, prenom) {
@@ -74,7 +75,16 @@ export async function checkAuthStatus() {
       .single();
     if (userError) throw new Error(userError.message);
 
-    return { ...user, profile: userData }; // Fusionne les données utilisateur
+    // Récupérer l'adresse de l'utilisateur
+    const adresse = await checkAdresse(user.id);
+
+    return { 
+      ...user, 
+      profile: { 
+        ...userData, 
+        adresse: adresse || null // Ajoute l'adresse ou `null` si absente
+      } 
+    };
   } catch (err) {
     console.error("Erreur lors de la vérification de l'utilisateur:", err.message);
     return null; // Retourne null en cas d'échec

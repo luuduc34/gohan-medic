@@ -7,10 +7,10 @@
 </template>
 
 <script>
-import Header from '@/components/Header/Header.vue';
-import AppFooter from './components/Footer/AppFooter.vue';
+import Header from "@/components/Header/Header.vue";
+import AppFooter from "./components/Footer/AppFooter.vue";
 
 export default {
-  components: { Header, AppFooter},
+  components: { Header, AppFooter },
 };
 </script>

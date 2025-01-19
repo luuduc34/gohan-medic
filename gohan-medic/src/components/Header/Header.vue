@@ -49,7 +49,7 @@
 </template>
 
 <script>
-import { useUserStore } from "@/stores/UserStore"; // Assurez-vous que l'importation est correcte
+import { useUserStore } from "@/stores/UserStore";
 import NavBar from "../NavBar/NavBar.vue";
 
 export default {
