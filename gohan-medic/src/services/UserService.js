@@ -105,3 +105,37 @@ export async function logout() {
     return false;
   }
 }
+
+// Met à jour le nom et le prénom de l'utilisateur
+export async function updateUserProfile(userId, name, firstName) {
+  try {
+    
+    
+
+    console.log("ID user :", userId);
+    console.log("Les données à modifier :", name, firstName);
+
+    // Validation des entrées
+    if (!name || !firstName) {
+      throw new Error("Les champs 'name' et 'firstName' sont obligatoires.");
+    }
+
+    // Mise à jour dans la table users
+    const { error: updateError } = await supabase
+      .from("users")
+      .update({
+        name,
+        first_name: firstName,
+      })
+      .eq("id", userId);
+
+    if (updateError) throw new Error(updateError.message);
+
+    console.log("Profil utilisateur mis à jour avec succès.");
+    return true; // Retourne true en cas de succès
+  } catch (err) {
+    console.error("Erreur lors de la mise à jour du profil utilisateur:", err.message);
+    return false; // Retourne false en cas d'échec
+  }
+}
+

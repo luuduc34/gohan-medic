@@ -37,6 +37,7 @@ export async function updateAdresse({ id, userId, street, city, postalCode, coun
           city,
           postal_code: postalCode,
           country,
+          updated_at: new Date().toISOString(),
         })
         .eq("id", id) // Met à jour l'adresse par son ID
         .eq("user_id", userId) // Vérifie que l'adresse appartient bien à l'utilisateur
@@ -77,4 +78,48 @@ export async function checkAdresse(id) {
       console.error("Erreur lors de la récupération de l'adresse:", err.message);
       return null; // Retourne null en cas d'erreur
     }
+}
+
+// Vérifie si l'utilisateur a une adresse par défaut et effectue un update ou un insert
+export async function upsertAdresse({ userId, street, city, postalCode, country }) {
+  try {
+    // Vérifier si l'utilisateur a déjà une adresse par défaut
+    const existingAdresse = await checkAdresse(userId);
+
+    if (existingAdresse) {
+      // Si une adresse existe, effectuer un update
+      const updatedAdresse = await updateAdresse({
+        id: existingAdresse.id,
+        userId,
+        street,
+        city,
+        postalCode,
+        country,
+      });
+
+      if (!updatedAdresse) {
+        throw new Error("Échec de la mise à jour de l'adresse.");
+      }
+
+      return updatedAdresse;
+    } else {
+      // Si aucune adresse par défaut n'existe, insérer une nouvelle adresse
+      const newAdresse = await insertAdresse({
+        userId,
+        street,
+        city,
+        postalCode,
+        country,
+      });
+
+      if (!newAdresse) {
+        throw new Error("Échec de l'insertion de l'adresse.");
+      }
+
+      return newAdresse;
+    }
+  } catch (err) {
+    console.error("Erreur lors de l'upsert de l'adresse:", err.message);
+    return null; // Retourne null en cas d'erreur
+  }
 }
