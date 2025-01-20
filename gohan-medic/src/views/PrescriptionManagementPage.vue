@@ -2,13 +2,25 @@
   <div class="prescription-management-page">
     <h1 class="page-title">Gestion des Ordonnances</h1>
 
-    <ul v-if="prescriptions.length > 0" class="prescription-list">
+    <!-- Filtres -->
+    <div class="filter-container">
+      <label v-for="status in statusOptions" :key="status.value" class="filter-label">
+        <input type="checkbox" :value="status.value" v-model="selectedStatuses" />
+        {{ status.label }}
+      </label>
+    </div>
+
+    <!-- Liste filtrée -->
+    <ul v-if="filteredPrescriptions.length > 0" class="prescription-list">
       <li
-        v-for="prescription in prescriptions"
+        v-for="prescription in filteredPrescriptions"
         :key="prescription.prescription_id"
         class="prescription-item"
       >
-        <span>{{ prescription.comment || "Pas de commentaire" }}</span>
+        <!-- Lien cliquable vers l'ordonnance -->
+        <a :href="prescription.file_url" target="_blank">
+          {{ prescription.comment || "Pas de commentaire" }}
+        </a>
         <span>Statut : {{ prescription.status }}</span>
 
         <div class="actions">
@@ -65,7 +77,27 @@ export default {
   data() {
     return {
       prescriptions: [],
+      // Options de statut disponibles pour le filtre
+      statusOptions: [
+        { value: "en attente", label: "En attente" },
+        { value: "approuvée", label: "Approuvée" },
+        { value: "en préparation", label: "En préparation" },
+        { value: "finalisée", label: "Finalisée" },
+        { value: "délivrée", label: "Délivrée" },
+      ],
+      selectedStatuses: ["en attente"], // Statuts sélectionnés par défaut
     };
+  },
+  computed: {
+    // Liste des prescriptions filtrées en fonction des statuts sélectionnés
+    filteredPrescriptions() {
+      if (this.selectedStatuses.length === 0) {
+        return this.prescriptions; // Si aucun statut n'est sélectionné, tout afficher
+      }
+      return this.prescriptions.filter((prescription) =>
+        this.selectedStatuses.includes(prescription.status)
+      );
+    },
   },
   async created() {
     this.loadPrescriptions();
@@ -172,6 +204,19 @@ export default {
   font-weight: bold;
   color: #2d9cdb;
   margin-bottom: 20px;
+}
+
+.filter-container {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.filter-label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 14px;
 }
 
 .prescription-list {
