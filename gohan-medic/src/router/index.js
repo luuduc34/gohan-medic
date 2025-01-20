@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from "vue-router";
 import { useUserStore } from "@/stores/UserStore";
 import AuthPage from "@/views/AuthPage.vue";
+import ProfilPage from "@/views/ProfilPage.vue";
 import CataloguePage from "@/views/CataloguePage.vue";
 import HomePage from "@/views/HomePage.vue";
 import PanierPage from "@/views/PanierPage.vue";
@@ -24,6 +25,12 @@ const routes = [
     path: "/Auth",
     name: "Auth",
     component: AuthPage,
+  },
+  { 
+    path: "/Profil",
+    name: "Profil",
+    component: ProfilPage,
+    meta: { requiresAuth: true },
   },
   { 
     path: "/Panier",

@@ -31,9 +31,10 @@
           <!-- Bouton de connexion visible si l'utilisateur n'est pas connecté -->
           <button v-else @click="goToAuth">Se connecter</button>
 
-          <hr />
+          <hr v-if="isAuthenticated" />
           <!-- Ligne de séparation -->
-          <button>Mes commandes</button>
+          <button v-if="isAuthenticated" @click="goToProfil">Profile</button>
+          <button v-if="isAuthenticated">Mes commandes</button>
           <!-- Accès aux commandes utilisateur -->
         </div>
       </div>
@@ -112,6 +113,9 @@ export default {
     },
     goToAuth() {
       this.$router.push("/Auth");
+    },
+    goToProfil() {
+      this.$router.push("/Profil");
     },
     goToPanier() {
       this.checkPanierType(); // Appelez la vérification avant de naviguer

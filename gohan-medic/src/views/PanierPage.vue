@@ -151,7 +151,6 @@ export default {
       try {
         // Vérifiez si l'utilisateur a une adresse
         const userStore = useUserStore();
-        userStore.fetchUser();
         if (
           !userStore.user ||
           !userStore.user.profile ||
