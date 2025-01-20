@@ -76,6 +76,7 @@
 
 <script>
 import { useBasketStore } from "@/stores/BasketStore";
+import { useUserStore } from "@/stores/UserStore";
 import ProductBasketCard from "@/components/Product/ProductBasketCard";
 import { computed } from "vue";
 import { checkStock } from "@/services/ProductService";
@@ -137,7 +138,6 @@ export default {
         }
       }
     };
-
     return {
       basketStore,
       subtotalFormatted,
@@ -149,6 +149,17 @@ export default {
   methods: {
     async handleContinueOrder() {
       try {
+        // Vérifiez si l'utilisateur a une adresse
+        const userStore = useUserStore();
+        if (
+          !userStore.user ||
+          !userStore.user.profile ||
+          !userStore.user.profile.adresse
+        ) {
+          alert("Vous devez ajouter une adresse pour continuer votre commande.");
+          return;
+        }
+
         // Appeler la fonction checkStock avec le panier actuel
         const result = await checkStock(this.basketStore.basketItems);
 
