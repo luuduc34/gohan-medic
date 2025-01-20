@@ -15,9 +15,8 @@
       <li
         v-for="prescription in filteredPrescriptions"
         :key="prescription.prescription_id"
-        class="prescription-item"
+        :class="['prescription-item', prescription.status]"
       >
-        <!-- Lien cliquable vers l'ordonnance -->
         <a :href="prescription.file_url" target="_blank">
           {{ prescription.comment || "Pas de commentaire" }}
         </a>
@@ -84,6 +83,7 @@ export default {
         { value: "en préparation", label: "En préparation" },
         { value: "finalisée", label: "Finalisée" },
         { value: "délivrée", label: "Délivrée" },
+        { value: "rejetée", label: "Rejetée" },
       ],
       selectedStatuses: ["en attente"], // Statuts sélectionnés par défaut
     };
@@ -162,17 +162,18 @@ export default {
 
     async rejectPrescription(prescription_id) {
       const reason = prompt("Indiquez la raison du rejet :");
-      if (!reason) return;
+      if (!reason) return; // Si aucune raison n'est fournie, arrêter
       try {
         await updatePrescriptionStatus(prescription_id, "rejetée", reason);
-        await this.loadPrescriptions();
-        window.dispatchEvent(new Event("updatePendingCount")); // Déclenche l'update
+        await this.loadPrescriptions(); // Recharger les prescriptions après mise à jour
+        window.dispatchEvent(new Event("updatePendingCount")); // Mettre à jour les notifications
         alert("Prescription rejetée !");
       } catch (error) {
         console.error("Erreur lors du rejet :", error);
         alert("Impossible de rejeter la prescription.");
       }
     },
+
     async updateStatus(prescription_id, newStatus) {
       try {
         await updatePrescriptionStatus(prescription_id, newStatus);
@@ -233,6 +234,11 @@ export default {
   margin-bottom: 10px;
   border-radius: 5px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.prescription-item.rejetée {
+  background-color: #f8d7da;
+  border-color: #f5c6cb;
 }
 
 .actions button {
