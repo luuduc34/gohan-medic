@@ -42,7 +42,7 @@
           </div>
 
           <!-- Formulaire d'adresse -->
-          <div v-if="userStore.user.profile.adresse">
+          <div>
             <h2>Adresse :</h2>
             <div>
               <label for="street">Rue :</label>
@@ -50,7 +50,7 @@
                 v-model="editedProfile.adresse.street"
                 type="text"
                 id="street"
-                :placeholder="userStore.user.profile.adresse.street"
+                placeholder="Entrez votre rue"
               />
             </div>
 
@@ -60,7 +60,7 @@
                 v-model="editedProfile.adresse.city"
                 type="text"
                 id="city"
-                :placeholder="userStore.user.profile.adresse.city"
+                placeholder="Entrez votre ville"
               />
             </div>
 
@@ -70,7 +70,7 @@
                 v-model="editedProfile.adresse.postal_code"
                 type="text"
                 id="postal_code"
-                :placeholder="userStore.user.profile.adresse.postal_code"
+                placeholder="Entrez votre code postal"
               />
             </div>
 
@@ -80,7 +80,7 @@
                 v-model="editedProfile.adresse.country"
                 type="text"
                 id="country"
-                :placeholder="userStore.user.profile.adresse.country"
+                placeholder="Entrez votre pays"
               />
             </div>
           </div>
@@ -117,14 +117,12 @@ export default {
       name: userStore.user?.profile.name || "",
       first_name: userStore.user?.profile.first_name || "",
       email: userStore.user?.profile.email || "",
-      adresse: userStore.user?.profile.adresse
-        ? {
-            street: userStore.user.profile.adresse.street || "",
-            city: userStore.user.profile.adresse.city || "",
-            postal_code: userStore.user.profile.adresse.postal_code || "",
-            country: userStore.user.profile.adresse.country || "",
-          }
-        : {},
+      adresse: {
+        street: userStore.user?.profile.adresse?.street || "",
+        city: userStore.user?.profile.adresse?.city || "",
+        postal_code: userStore.user?.profile.adresse?.postal_code || "",
+        country: userStore.user?.profile.adresse?.country || "",
+      },
     };
 
     // Appliquer les changements au userStore
@@ -132,7 +130,7 @@ export default {
       try {
         let success = true;
 
-        // Mettre à jour le profil utilisateur (nom et prénom)
+        // Mettre à jour le profil utilisateur
         const updatedProfile = await updateUserProfile(
           userStore.user.id,
           editedProfile.name,
@@ -144,24 +142,31 @@ export default {
           console.error("Échec de la mise à jour du profil.");
         }
 
-        // Mettre à jour l'adresse utilisateur
-        const updatedAdresse = await upsertAdresse({
-          userId: userStore.user.id, // ID de l'utilisateur
-          street: editedProfile.adresse.street,
-          city: editedProfile.adresse.city,
-          postalCode: editedProfile.adresse.postal_code,
-          country: editedProfile.adresse.country,
-        });
+        // Vérifiez si l'adresse a été remplie
+        const hasAddress =
+          editedProfile.adresse.street ||
+          editedProfile.adresse.city ||
+          editedProfile.adresse.postal_code ||
+          editedProfile.adresse.country;
 
-        if (!updatedAdresse) {
-          success = false;
-          console.error("Échec de la mise à jour de l'adresse.");
+        if (hasAddress) {
+          const updatedAdresse = await upsertAdresse({
+            userId: userStore.user.id, // ID de l'utilisateur
+            street: editedProfile.adresse.street || "",
+            city: editedProfile.adresse.city || "",
+            postalCode: editedProfile.adresse.postal_code || "",
+            country: editedProfile.adresse.country || "",
+          });
+
+          if (!updatedAdresse) {
+            success = false;
+            console.error("Échec de la mise à jour de l'adresse.");
+          }
         }
 
         // Rafraîchir les données utilisateur
         await userStore.fetchUser();
 
-        // Afficher une seule alerte en fonction du résultat global
         if (success) {
           alert("Profil et adresse mis à jour avec succès !");
         } else {
