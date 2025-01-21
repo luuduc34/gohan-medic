@@ -142,6 +142,7 @@ export default {
           console.error("Échec de la mise à jour du profil.");
         }
 
+        // blablabla
         // Vérifiez si l'adresse a été remplie
         const hasAddress =
           editedProfile.adresse.street ||
