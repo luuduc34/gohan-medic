@@ -59,7 +59,7 @@
             }}</span>
           </button>
           <div v-if="showOrdonnanceDropdown" class="dropdown-menu-nav">
-            <button @click="goToPrescriptionUpload">Téléverser une ordonnance</button>
+            <button @click="goToPrescriptionUpload">Uploader une ordonnance</button>
             <button @click="goToPrescriptionList">Mes ordonnances</button>
           </div>
         </div>
