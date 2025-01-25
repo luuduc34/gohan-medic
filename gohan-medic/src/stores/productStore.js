@@ -10,5 +10,5 @@ export const useProductStore = defineStore("ProductStore", {
     },
   },
 
-  persist: true, // Sauvegarde automatique de l'état utilisateur (même après un refresh)
+  persist: true, // Sauvegarde automatique de l'état (même après un refresh)
 });

@@ -138,4 +138,3 @@ export async function updateUserProfile(userId, name, firstName) {
     return false; // Retourne false en cas d'échec
   }
 }
-

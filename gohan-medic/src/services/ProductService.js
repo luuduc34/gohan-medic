@@ -131,3 +131,34 @@ export async function updateProductStock(productId, newStock) {
     throw new Error("Erreur lors de la mise à jour du stock : " + error.message);
   }
 }
+
+export async function decrementProductStock(productId, quantityToRemove) {
+  try {
+    // Récupérer les informations du produit
+    const product = await fetchProductById(productId);
+
+    // Si le produit n'existe pas ou a un stock insuffisant
+    if (!product || product.stock < quantityToRemove) {
+      throw new Error(`Stock insuffisant pour le produit ID ${productId} ou produit introuvable.`);
+    }
+
+    // Calculer le nouveau stock
+    const newStock = product.stock - quantityToRemove;
+
+    // Appeler la fonction pour mettre à jour le stock
+    await updateProductStock(productId, newStock);
+
+    return {
+      success: true,
+      message: `Le stock pour le produit ID ${productId} a été mis à jour avec succès.`,
+      newStock: newStock,
+    };
+  } catch (err) {
+    console.error("Erreur lors de la diminution du stock :", err);
+    return {
+      success: false,
+      message: err.message,
+    };
+  }
+}
+

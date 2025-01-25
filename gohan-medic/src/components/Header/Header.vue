@@ -34,7 +34,7 @@
           <hr v-if="isAuthenticated" />
           <!-- Ligne de séparation -->
           <button v-if="isAuthenticated" @click="goToProfil">Profile</button>
-          <button v-if="isAuthenticated">Mes commandes</button>
+          <button v-if="isAuthenticated" @click="goToOrder">Mes commandes</button>
           <!-- Accès aux commandes utilisateur -->
         </div>
       </div>
@@ -116,6 +116,9 @@ export default {
     },
     goToProfil() {
       this.$router.push("/Profil");
+    },
+    goToOrder() {
+      this.$router.push("/Order");
     },
     goToPanier() {
       this.checkPanierType(); // Appelez la vérification avant de naviguer

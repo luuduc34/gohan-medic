@@ -2,6 +2,7 @@ import { defineStore } from "pinia";
 import { checkAuthStatus, logout } from "@/services/UserService";
 import { BasketService } from "@/services/BasketService";
 import { useBasketStore } from "./BasketStore";
+import { useUserOrderStore } from "./UserOrderStore";
 import { fetchPendingPrescriptionsCount } from "@/services/PrescriptionService";
 
 export const useUserStore = defineStore("user", {
@@ -61,6 +62,10 @@ export const useUserStore = defineStore("user", {
           // Charger le panier de l'utilisateur
           const basketStore = useBasketStore();  // Accéder au store du panier
           basketStore.setUserId(user.profile.id);       // Définir l'ID utilisateur et transférer le panier du guest
+
+          // Charger les commande de l'utilisateur
+          const orderStore = useUserOrderStore();  // Accéder au store du des commandes
+          orderStore.fetchOrders(user.profile.id);
 
         } else {
           this.resetState(); // Réinitialise l'état si aucun utilisateur n'est connecté

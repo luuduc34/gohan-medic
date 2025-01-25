@@ -9,17 +9,24 @@
 
 import { onMounted } from "vue";
 import { useBasketStore } from "@/stores/BasketStore";
+import { create_order } from "@/services/OrderService";
 
 export default {
   setup(_, { emit }) {
     const basketStore = useBasketStore();
+
+    // Variable pour stocker les montants calculés dans createOrder
+    let orderSummary = {
+      itemTotal: 0,
+      shippingCost: 0,
+      totalWithShipping: 0,
+    };
 
     onMounted(() => {
       loadPayPalSDK();
     });
 
     function loadPayPalSDK() {
-      // Nettoyer le conteneur des boutons PayPal
       const paypalContainer = document.getElementById("paypal-boutons");
       if (paypalContainer) {
         paypalContainer.innerHTML = ""; // Supprime tout contenu précédent
@@ -46,7 +53,7 @@ export default {
         return;
       }
 
-      paypalContainer.innerHTML = ""; // Supprime les anciens boutons
+      paypalContainer.innerHTML = "";
 
       if (!paypal) {
         console.error("Le SDK PayPal n'est pas chargé correctement.");
@@ -74,13 +81,15 @@ export default {
               { produits: [], totalAmount: 0 }
             );
 
-            // Ajouter des frais de port si le total est inférieur à 39 euros
-            let shippingCost = 0;
-            if (totalAmount < 39) {
-              shippingCost = 3; // Ajouter 3 euros de frais de port
-            }
-
+            let shippingCost = totalAmount < 39 ? 3 : 0;
             const totalWithShipping = totalAmount + shippingCost;
+
+            // Stocker les montants dans la variable orderSummary
+            orderSummary = {
+              itemTotal: parseFloat(totalAmount).toFixed(2),
+              shippingCost: parseFloat(shippingCost).toFixed(2),
+              totalWithShipping: parseFloat(totalWithShipping).toFixed(2),
+            };
 
             return actions.order.create({
               purchase_units: [
@@ -91,7 +100,7 @@ export default {
                     currency_code: "EUR",
                     breakdown: {
                       item_total: { value: totalAmount.toFixed(2), currency_code: "EUR" },
-                      shipping: { value: shippingCost.toFixed(2), currency_code: "EUR" }, // Ajouter les frais de port
+                      shipping: { value: shippingCost.toFixed(2), currency_code: "EUR" },
                     },
                   },
                 },
@@ -100,8 +109,13 @@ export default {
           },
           onApprove: (data, actions) => {
             return actions.order.capture().then((details) => {
-              emit("payment-success", details); // Émet l'événement vers le parent
-              basketStore.clearBasket();
+              create_order(orderSummary.itemTotal, orderSummary.shippingCost);
+
+              // Émet les détails du paiement vers le parent
+              emit("payment-success", {
+                details,
+                orderSummary,
+              });
             });
           },
           onCancel: () => {
@@ -110,6 +124,7 @@ export default {
         })
         .render("#paypal-boutons");
     }
+
     return {};
   },
 };
