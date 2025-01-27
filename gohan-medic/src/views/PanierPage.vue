@@ -86,7 +86,7 @@ export default {
   name: "PanierPage",
   components: {
     ProductBasketCard,
-    PaypalButton, // Ajoutez le composant PaypalButton ici
+    PaypalButton,
   },
   data() {
     return {

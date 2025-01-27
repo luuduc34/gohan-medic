@@ -14,6 +14,8 @@ import PrescriptionUploadPage from "@/views/PrescriptionUploadPage.vue";
 import PrescriptionListPage from "@/views/PrescriptionListPage.vue";
 import PrescriptionManagementPage from "@/views/PrescriptionManagementPage.vue";
 import PrescriptionPage from "@/views/PrescriptionPage.vue";
+import OrderPage from "@/views/OrderPage.vue";
+import OrderDetailPage from "@/views/OrderDetailPage.vue";
 
 const routes = [
   { 
@@ -33,10 +35,20 @@ const routes = [
     meta: { requiresAuth: true },
   },
   { 
+    path: "/Order",
+    name: "Order",
+    component: OrderPage,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: "/orders/:id",
+    name: "OrderDetails",
+    component: OrderDetailPage,
+  },
+  {
     path: "/Panier",
     name: "Panier",
     component: PanierPage,
-    meta: { requiresAuth: true },
   },
   {
     path: "/Gestion",
