@@ -19,15 +19,23 @@
 
     <!-- Bouton pour soumettre le formulaire -->
     <button type="submit" class="submit-button">Se connecter</button>
+
+    <!-- Bouton Google -->
+    <google-button />
   </form>
 </template>
 
 <script>
+// Importation du composant GoogleButton
+import GoogleButton from "@/components/google/GoogleButton.vue";
 // Importation des services et du store utilisateur
 import { loginWithEmail } from "@/services/UserService"; // Fonction pour gérer la connexion
 import { useUserStore } from "@/stores/UserStore"; // Store utilisateur pour gérer l'état global
 
 export default {
+  components: {
+    GoogleButton,
+  },
   data() {
     return {
       email: "", // Stocke l'email de l'utilisateur
