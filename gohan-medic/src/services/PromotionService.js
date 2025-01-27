@@ -177,21 +177,56 @@ export async function addPromotion(promotionData, productId) {
   }
 }
 
-// Récupérer une promotion spécifique par son ID
+// Récupérer une promotion spécifique par son ID avec les détails du produit
 export async function fetchPromotionById(promotionId) {
-  const { data, error } = await supabase
-    .from("promotion")
-    .select("*, promotion_product(product_id)") // Inclut également les produits liés
-    .eq("id", promotionId) // Filtre par l'ID de la promotion
-    .single(); // Récupère un seul enregistrement
+  try {
+    const { data, error } = await supabase
+      .from("promotion_product")
+      .select(`
+        product:product_id (
+          id,
+          name,
+          price,
+          description
+        ),
+        promotion:promotion_id (
+          id,
+          percentage,
+          created_at,
+          end_at,
+          is_valid
+        )
+      `)
+      .eq("promotion_id", promotionId)
+      .single();
 
-  if (error) {
-    console.error("Erreur lors de la récupération de la promotion :", error);
-    return null; // Retourne null en cas d'erreur
+    if (error) {
+      console.error("Erreur lors de la récupération de la promotion :", error);
+      return null;
+    }
+
+    // Assurez-vous que les données sont bien formatées
+    return {
+      promotion: {
+        id: data.promotion.id,
+        percentage: data.promotion.percentage,
+        created_at: data.promotion.created_at,
+        end_at: data.promotion.end_at,
+        is_valid: data.promotion.is_valid,
+      },
+      product: {
+        id: data.product.id,
+        name: data.product.name,
+        price: data.product.price,
+        description: data.product.description,
+      },
+    };
+  } catch (error) {
+    console.error("Erreur critique lors de la récupération de la promotion :", error);
+    return null;
   }
-
-  return data; // Retourne les détails de la promotion
 }
+
 
 // Mettre à jour une promotion avec des données modifiées
 export async function updatePromotion(promotionId, updatedData) {

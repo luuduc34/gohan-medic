@@ -91,11 +91,19 @@ const routes = [
         component: () => import("@/views/ModifyPromotionForm.vue"),
         props: true,
       },
+      // Menu Stock
       {
         path: '/Gestion/Stock',
         name: 'StockManagementPage',
         component: StockManagementPage,
-      },           
+      },    
+      // Menu Ordonnance
+      {
+        path: "/Gestion/Ordonnances",
+        name: "PrescriptionManagementPage",
+        component: PrescriptionManagementPage,
+        meta: { requiresAuth: true, requiresAdmin: true },
+      },   
     ],
   },
   { 
@@ -137,13 +145,6 @@ const routes = [
     name: "PrescriptionUploadPage",
     component: PrescriptionUploadPage, 
   },
-  {
-    path: "/Gestion/Ordonnances",
-    name: "PrescriptionManagementPage",
-    component: PrescriptionManagementPage,
-    meta: { requiresAuth: true, requiresAdmin: true },
-  },
-  
 ];
 
 const router = createRouter({

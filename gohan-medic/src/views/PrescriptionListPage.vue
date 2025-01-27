@@ -1,24 +1,58 @@
 <template>
   <div class="prescription-list-page">
-    <!-- Titre principal de la page -->
+    <!-- Titre principal affiché en haut de la page -->
     <h1 class="page-title">Mes Ordonnances</h1>
 
-    <!-- Liste des ordonnances de l'utilisateur -->
-    <ul v-if="prescriptions.length > 0">
-      <!-- Boucle pour afficher chaque ordonnance -->
-      <li v-for="prescription in prescriptions" :key="prescription.id">
-        <!-- Lien pour consulter le fichier de l'ordonnance -->
-        <a :href="prescription.file_url" target="_blank">
-          {{
-            prescription.comment || "Ordonnance sans commentaire"
-            /* Affiche un commentaire ou un message par défaut si aucun commentaire n'est fourni */
-          }}
-        </a>
-        <!-- Affichage du statut de l'ordonnance -->
-        <p>Statut : {{ prescription.status }}</p>
-      </li>
-    </ul>
-    <!-- Message affiché lorsque l'utilisateur n'a aucune ordonnance -->
+    <!-- Tableau affichant les ordonnances -->
+    <table v-if="prescriptions.length > 0" class="prescription-table">
+      <thead>
+        <!-- En-tête du tableau avec les colonnes -->
+        <tr>
+          <th>#</th>
+          <!-- Numéro de l'ordonnance -->
+          <th>Ordonnance</th>
+          <!-- Lien vers l'ordonnance -->
+          <th>Statut</th>
+          <!-- Statut de l'ordonnance -->
+          <th>Raison du rejet</th>
+          <!-- Raison du rejet (si applicable) -->
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Parcours de la liste des ordonnances -->
+        <tr
+          v-for="(prescription, index) in prescriptions"
+          :key="prescription.prescription_id"
+          :class="{ rejected: prescription.status === 'rejetée' }"
+        >
+          <!-- Index de l'ordonnance -->
+          <td>{{ index + 1 }}</td>
+
+          <!-- Lien vers le fichier de l'ordonnance -->
+          <td>
+            <a :href="prescription.file_url" target="_blank">
+              {{ prescription.comment || "Pas de commentaire" }}
+            </a>
+          </td>
+
+          <!-- Statut de l'ordonnance -->
+          <td>
+            <strong>{{ prescription.status }}</strong>
+          </td>
+
+          <!-- Affichage de la raison du rejet si le statut est "rejetée" -->
+          <td>
+            <span v-if="prescription.status === 'rejetée'">
+              {{ prescription.reason || "Non spécifiée" }}
+            </span>
+            <span v-else>-</span>
+            <!-- Affiche un tiret si pas rejetée -->
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Message affiché si aucune ordonnance n'est disponible -->
     <p v-else>Aucune ordonnance disponible.</p>
   </div>
 </template>
@@ -30,14 +64,15 @@ export default {
   name: "PrescriptionListPage", // Nom du composant
   data() {
     return {
-      prescriptions: [], // Liste des ordonnances récupérées
+      prescriptions: [], // Liste des ordonnances récupérées depuis la base de données
     };
   },
   async created() {
     try {
-      // Récupérer les informations de l'utilisateur via Supabase
+      // Récupérer l'utilisateur actuellement connecté via Supabase
       const { data: userData, error: userError } = await supabase.auth.getUser();
 
+      // Vérification des erreurs de récupération de l'utilisateur
       if (userError) {
         console.error(
           "Erreur lors de la récupération de l'utilisateur :",
@@ -46,26 +81,28 @@ export default {
         throw new Error("Impossible de récupérer les informations utilisateur.");
       }
 
+      // Vérifier si un utilisateur est connecté
       if (!userData?.user) {
         throw new Error("Utilisateur non authentifié. Veuillez vous connecter.");
       }
 
-      const userId = userData.user.id; // Récupération de l'ID de l'utilisateur connecté
+      const userId = userData.user.id; // ID de l'utilisateur connecté
       console.log("ID utilisateur :", userId);
 
-      // Récupération des ordonnances associées à l'utilisateur
+      // Récupérer les ordonnances liées à cet utilisateur depuis la base de données
       const { data, error } = await supabase
-        .from("prescription") // Nom de la table dans la base de données
-        .select("*") // Sélection de toutes les colonnes
+        .from("prescription") // Table "prescription" dans la base de données
+        .select("*") // Récupérer toutes les colonnes
         .eq("user_id", userId) // Filtrer par l'ID de l'utilisateur
         .order("created_at", { ascending: false }); // Trier par date décroissante
 
+      // Gérer les erreurs lors de la récupération des ordonnances
       if (error) {
         console.error("Erreur lors de la récupération des ordonnances :", error.message);
         throw error;
       }
 
-      // Stocker les ordonnances récupérées dans la variable `prescriptions`
+      // Stocker les données récupérées dans la variable `prescriptions`
       this.prescriptions = data;
       console.log("Ordonnances récupérées :", data);
     } catch (error) {
@@ -78,30 +115,60 @@ export default {
 <style scoped>
 /* Conteneur principal de la page */
 .prescription-list-page {
-  max-width: 600px; /* Largeur maximale de la page */
-  margin: 20px auto; /* Centrer la page */
+  max-width: 1000px; /* Largeur maximale de la page */
+  margin: 20px auto; /* Espacement vertical et centrage horizontal */
   padding: 20px; /* Espacement interne */
-  background-color: #f9fbff; /* Couleur de fond */
+  background-color: #f9fbff; /* Couleur de fond douce */
   border-radius: 10px; /* Coins arrondis */
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Ombre légère */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Ombre douce */
 }
 
-/* Style du titre de la page */
+/* Titre principal */
 .page-title {
-  text-align: center; /* Centrer le texte */
+  text-align: center; /* Centré horizontalement */
   font-size: 2rem; /* Taille de la police */
-  color: #2d9cdb; /* Couleur bleue */
-  margin-bottom: 20px; /* Espacement en bas */
+  color: #2d9cdb; /* Bleu clair */
+  margin-bottom: 20px; /* Espacement sous le titre */
 }
 
-/* Liste des ordonnances */
-ul {
-  list-style: none; /* Suppression des puces de la liste */
-  padding: 0; /* Suppression des marges internes */
+/* Tableau des ordonnances */
+.prescription-table {
+  width: 100%; /* Largeur complète */
+  border-collapse: collapse; /* Fusion des bordures */
 }
 
-/* Style des éléments de la liste */
-li {
-  margin-bottom: 15px; /* Espacement entre chaque élément */
+/* Styles des cellules du tableau */
+.prescription-table th,
+.prescription-table td {
+  padding: 10px; /* Espacement interne */
+  border: 1px solid #ddd; /* Bordure grise */
+  text-align: center; /* Texte centré */
+}
+
+/* En-tête du tableau */
+.prescription-table th {
+  background-color: #f4f4f4; /* Fond clair */
+  font-weight: bold; /* Texte en gras */
+}
+
+/* Lignes avec statut "rejetée" */
+.prescription-table tr.rejected {
+  background-color: #fdecea; /* Fond rouge clair */
+  color: #e74c3c; /* Texte rouge */
+}
+
+/* Alternance de couleurs pour les lignes */
+.prescription-table tr:nth-child(even) {
+  background-color: #f9f9f9; /* Fond gris clair */
+}
+
+/* Liens vers les ordonnances */
+.prescription-table a {
+  color: #007bff; /* Bleu clair */
+  text-decoration: none; /* Suppression du soulignement */
+}
+
+.prescription-table a:hover {
+  text-decoration: underline; /* Soulignement au survol */
 }
 </style>

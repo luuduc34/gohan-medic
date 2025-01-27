@@ -6,47 +6,29 @@
     <!-- Formulaire de modification -->
     <!-- Affiché uniquement si la promotion est chargée -->
     <form @submit.prevent="handleSubmit" class="promotion-form" v-if="promotion">
-      <!-- Champ pour le nom de la promotion -->
-      <label for="name">Nom</label>
-      <input v-model="promotion.name" id="name" type="text" required />
-
-      <!-- Champ pour la description de la promotion -->
-      <label for="description">Description</label>
-      <textarea
-        v-model="promotion.description"
-        id="description"
-        rows="3"
-        required
-      ></textarea>
-
-      <!-- Champ pour la date de début de la promotion -->
-      <label for="start_date">Date de début</label>
-      <input v-model="promotion.start_date" id="start_date" type="date" required />
-
-      <!-- Champ pour la date de fin de la promotion -->
-      <label for="end_date">Date de fin</label>
-      <input v-model="promotion.end_date" id="end_date" type="date" required />
-
-      <!-- Champ pour le pourcentage de réduction -->
-      <label for="discount">Réduction (%)</label>
+      <label for="discount">Pourcentage de réduction</label>
       <input
-        v-model="promotion.discount"
+        v-model="promotion.percentage"
         id="discount"
         type="number"
-        min="0"
+        min="1"
         max="100"
         required
       />
 
-      <!-- Champ pour sélectionner les produits inclus dans la promotion -->
-      <label for="products">Produits inclus</label>
+      <label for="start_date">Date de début</label>
+      <input v-model="promotion.start_date" id="start_date" type="date" required />
+
+      <label for="end_date">Date de fin</label>
+      <input v-model="promotion.end_date" id="end_date" type="date" required />
+
+      <label for="products">Produits associés</label>
       <select v-model="promotion.product_ids" id="products" multiple>
         <option v-for="product in products" :key="product.id" :value="product.id">
           {{ product.name }}
         </option>
       </select>
 
-      <!-- Bouton de soumission -->
       <button type="submit">Modifier</button>
     </form>
 
@@ -68,18 +50,32 @@ export default {
     };
   },
   async created() {
-    // Récupérer l'ID de la promotion depuis les paramètres de la route
     const promotionId = this.$route.params.id;
 
     try {
-      // Charger les détails de la promotion
-      this.promotion = await fetchPromotionById(promotionId);
-      // Charger tous les produits disponibles
+      // Fetch the promotion and related data
+      const fetchedData = await fetchPromotionById(promotionId);
+
+      if (fetchedData) {
+        // Convert the date fields to the required format
+        const formatDate = (isoDate) => new Date(isoDate).toISOString().split("T")[0]; // Extract yyyy-MM-dd
+
+        this.promotion = {
+          id: fetchedData.promotion.id,
+          percentage: fetchedData.promotion.percentage,
+          start_date: formatDate(fetchedData.promotion.created_at), // Format date
+          end_date: formatDate(fetchedData.promotion.end_at), // Format date
+          product_ids: [fetchedData.product.id], // Ensure it's an array
+        };
+      }
+
+      // Fetch all available products
       this.products = await fetchProducts();
     } catch (error) {
-      console.error("Erreur lors du chargement :", error);
+      console.error("Erreur lors du chargement de la promotion ou des produits :", error);
     }
   },
+
   methods: {
     // Méthode appelée lors de la soumission du formulaire
     async handleSubmit() {
