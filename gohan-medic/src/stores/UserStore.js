@@ -18,7 +18,6 @@ export const useUserStore = defineStore("user", {
     // Retourne vrai si l'utilisateur est un administrateur
     isAdmin: (state) => {
       // Vérifie si l'utilisateur est défini et si son rôle est 2 (administrateur)
-      console.log(state.role);
       return state.role === 2;
     },
   
@@ -80,19 +79,20 @@ export const useUserStore = defineStore("user", {
     // Fonction pour déconnecter l'utilisateur
     async logoutUser() {
       try {
-        const success = await logout();
-        if (success) {
+        const response = await logout(); // Appeler la fonction logout
+    
+        if (response.success) {
           const basketStore = useBasketStore();
     
-          // Sauvegarder le panier avant déconnexion
+          // Sauvegarder le panier avant la déconnexion
           BasketService.saveBasket(basketStore.userId, basketStore.basketItems);
     
-          this.resetState(); // Réinitialise l'état après déconnexion
+          this.resetState(); // Réinitialiser l'état utilisateur
+          basketStore.setUserId(null); // Réinitialiser l'ID utilisateur pour le panier
+          BasketService.clearBasket(null); // Vider le panier invité
     
-          // Passer en mode invité pour le panier
-          basketStore.setUserId(null);
         } else {
-          this.error = "Erreur lors de la déconnexion.";
+          this.error = response.error || "Erreur lors de la déconnexion.";
         }
       } catch (error) {
         this.error = "Erreur inattendue lors de la déconnexion.";

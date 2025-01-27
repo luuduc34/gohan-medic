@@ -15,8 +15,6 @@ export async function fetchProducts(limit = null) {
     return [];
   }
 
-  console.log("Produits récupérés :", product); // Log les produits récupérés
-
   return product;
 }  
 
@@ -40,7 +38,7 @@ export async function fetchProductByIdCategory(categorieId) {
     return data;
 }
 
-  // Récupérer toutes les catégories
+// Récupérer toutes les catégories
 export async function fetchCategories() {
   const { data, error } = await supabase.from("category_product").select("*");
   if (error) {

@@ -6,11 +6,11 @@
 
     <div class="basket-container">
       <!-- Afficher un message si le panier est vide -->
-      <p v-if="basketStore.basketItems.length === 0">Votre panier est vide.</p>
+      <p v-if="basket.length === 0">Votre panier est vide.</p>
 
       <!-- Afficher les produits dans le panier -->
       <ProductBasketCard
-        v-for="product in basketStore.basketItems"
+        v-for="product in basket"
         :key="product.id"
         :product="product"
         @update-quantity="updateQuantity"
@@ -19,7 +19,7 @@
     </div>
 
     <!-- Afficher le total en dessous -->
-    <div v-if="basketStore.basketItems.length > 0" class="total-container">
+    <div v-if="basket.length > 0" class="total-container">
       <div class="summary">
         <div class="summary-row">
           <span>Sous-total</span>
@@ -78,7 +78,7 @@
 import { useBasketStore } from "@/stores/BasketStore";
 import { useUserStore } from "@/stores/UserStore";
 import ProductBasketCard from "@/components/Product/ProductBasketCard";
-import { computed } from "vue";
+import { computed, ref, watch } from "vue";
 import { checkStock } from "@/services/ProductService";
 import PaypalButton from "@/components/paypal/PaypalButton";
 
@@ -99,6 +99,21 @@ export default {
   },
   setup() {
     const basketStore = useBasketStore();
+    const userStore = useUserStore();
+    const basket = ref([]); // Utilisation de ref pour une réactivité
+
+    // Initialiser le panier correctement en fonction de l'état de l'utilisateur
+    watch(
+      () => userStore.user,
+      (user) => {
+        if (user) {
+          basket.value = basketStore.basketItems; // Panier de l'utilisateur
+        } else {
+          basket.value = basketStore.guestBasket; // Panier invité
+        }
+      },
+      { immediate: true } // Appliquer immédiatement
+    );
 
     // Calculer le sous-total
     const subtotal = computed(() => {
@@ -128,11 +143,10 @@ export default {
     const totalAmountFormatted = computed(() => formatCurrency(totalAmount.value));
 
     const updateQuantity = ({ id, quantity }) => {
-      const product = basketStore.basketItems.find((item) => item.id === id);
+      const product = basket.value.find((item) => item.id === id);
       if (product) {
         if (quantity > 0) {
           product.quantity = quantity;
-          basketStore.logBasketItems();
         } else {
           this.confirmRemoveItem(id);
         }
@@ -140,6 +154,7 @@ export default {
     };
     return {
       basketStore,
+      basket,
       subtotalFormatted,
       shippingCostFormatted,
       totalAmountFormatted,
@@ -156,7 +171,9 @@ export default {
           !userStore.user.profile ||
           !userStore.user.profile.adresse
         ) {
-          alert("Vous devez ajouter une adresse pour continuer votre commande.");
+          alert(
+            "Vous devez ajouter une adresse ou etre connecter pour continuer votre commande."
+          );
           return;
         }
 
@@ -182,7 +199,16 @@ export default {
     },
     removeConfirmedItem() {
       const basketStore = useBasketStore();
+      const userStore = useUserStore();
+
       basketStore.removeItem(this.itemToRemove);
+
+      if (userStore.user) {
+        this.basket = [...basketStore.basketItems]; // Mettre à jour avec les éléments de l'utilisateur
+      } else {
+        this.basket = [...basketStore.guestBasket]; // Mettre à jour avec les éléments du panier invité
+      }
+
       this.showConfirmPopup = false;
       this.itemToRemove = null;
     },
