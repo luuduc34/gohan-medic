@@ -80,7 +80,7 @@ export default {
         await updateProduct(this.product.id, this.product);
         alert("Produit modifié avec succès !"); // Confirmation pour l'utilisateur
         // Redirige vers la page de gestion des produits
-        this.$router.push("/Gestion/ModifyProduct");
+        this.$router.push("/Gestion/Produits");
       } catch (error) {
         console.error("Erreur lors de la modification du produit :", error); // Affiche une erreur si la mise à jour échoue
       }

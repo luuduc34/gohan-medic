@@ -24,7 +24,7 @@ export async function fetchPromotions() {
           created_at,
           end_at
         )
-      `)
+      `)        
       .eq("promotion.is_valid", true) // Filtrer uniquement les promotions valides
       .eq("product.is_promotion", true); // Filtrer uniquement les produits ayant une promotion active
 
@@ -160,7 +160,7 @@ export async function addPromotion(promotionData, productId) {
       throw new Error("Erreur lors de la liaison produit-promotion : " + linkError.message);
     }
 
-    // Étape 3 : Activer `is_promotion` dans le produit
+    // Étape 3 : Activer is_promotion dans le produit
     const { error: updateError } = await supabase
       .from("product")
       .update({ is_promotion: true })
@@ -193,8 +193,7 @@ export async function fetchPromotionById(promotionId) {
           id,
           percentage,
           created_at,
-          end_at,
-          is_valid
+          end_at
         )
       `)
       .eq("promotion_id", promotionId)
@@ -205,14 +204,12 @@ export async function fetchPromotionById(promotionId) {
       return null;
     }
 
-    // Assurez-vous que les données sont bien formatées
     return {
       promotion: {
         id: data.promotion.id,
         percentage: data.promotion.percentage,
-        created_at: data.promotion.created_at,
-        end_at: data.promotion.end_at,
-        is_valid: data.promotion.is_valid,
+        start_date: data.promotion.created_at.split("T")[0], // Format YYYY-MM-DD
+        end_date: data.promotion.end_at.split("T")[0],
       },
       product: {
         id: data.product.id,
@@ -230,16 +227,30 @@ export async function fetchPromotionById(promotionId) {
 
 // Mettre à jour une promotion avec des données modifiées
 export async function updatePromotion(promotionId, updatedData) {
-  const { error } = await supabase
-    .from("promotion")
-    .update(updatedData) // Met à jour les champs fournis dans `updatedData`
-    .eq("id", promotionId); // Filtre par l'ID de la promotion
+  try {
+    console.log("Données envoyées pour la mise à jour :", updatedData);
 
-  if (error) {
-    console.error("Erreur lors de la mise à jour de la promotion :", error);
-    throw new Error(error.message); // Lève une erreur en cas de problème
+    const dataToUpdate = {
+      percentage: updatedData.percentage,
+      created_at: updatedData.start_date,
+      end_at: updatedData.end_date,
+    };
+
+    const { error } = await supabase
+      .from("promotion")
+      .update(dataToUpdate)
+      .eq("id", promotionId);
+
+    if (error) {
+      console.error("Erreur lors de la mise à jour de la promotion :", error);
+      throw new Error(error.message);
+    }
+  } catch (error) {
+    console.error("Erreur critique lors de la mise à jour de la promotion :", error);
+    throw error;
   }
 }
+
 
 // Récupérer toutes les promotions pour la gestion (affichage)
 export async function fetchPromotionsForManagement() {
@@ -303,7 +314,7 @@ export async function updatePromotionValidity() {
       // Étape 2 : Désactiver les promotions expirées
       const { error: updatePromotionError } = await supabase
         .from("promotion")
-        .update({ is_valid: false }) // Met `is_valid` à false
+        .update({ is_valid: false }) // Met is_valid à false
         .in("id", expiredPromotionIds); // Filtre par les IDs des promotions expirées
 
       if (updatePromotionError) {
@@ -326,7 +337,7 @@ export async function updatePromotionValidity() {
       // Étape 4 : Désactiver les promotions pour les produits concernés
       const { error: updateProductError } = await supabase
         .from("product")
-        .update({ is_promotion: false }) // Met `is_promotion` à false
+        .update({ is_promotion: false }) // Met is_promotion à false
         .in("id", productIds); // Filtre par les IDs des produits concernés
 
       if (updateProductError) {
@@ -344,7 +355,7 @@ export async function softDeletePromotion(promotionId) {
     // Étape 1 : Désactiver la promotion
     const { error: promotionError } = await supabase
       .from("promotion")
-      .update({ is_valid: false }) // Met `is_valid` à false
+      .update({ is_valid: false }) // Met is_valid à false
       .eq("id", promotionId); // Filtre par l'ID de la promotion
 
     if (promotionError) {
@@ -371,7 +382,7 @@ export async function softDeletePromotion(promotionId) {
     // Étape 3 : Désactiver le statut promotionnel des produits
     const { error: updateError } = await supabase
       .from("product")
-      .update({ is_promotion: false }) // Met `is_promotion` à false
+      .update({ is_promotion: false }) // Met is_promotion à false
       .in("id", productIds); // Filtre par les IDs des produits
 
     if (updateError) {

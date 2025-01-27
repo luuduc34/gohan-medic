@@ -88,7 +88,7 @@ const routes = [
       {
         path: "Promotions/Modifier/:id",
         name: "ModifyPromotionForm",
-        component: () => import("@/views/ModifyPromotionForm.vue"),
+        component: () => import("@/views/ModifyPromotionPage.vue"),
         props: true,
       },
       // Menu Stock

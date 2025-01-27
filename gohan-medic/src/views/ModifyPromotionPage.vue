@@ -2,10 +2,6 @@
   <div class="modify-promotion-page">
     <h1 class="page-title">Modifier la Promotion</h1>
     <form @submit.prevent="handleSubmit" class="promotion-form" v-if="promotion">
-      <!-- Nom de la promotion -->
-      <label for="name">Nom de la promotion</label>
-      <input v-model="promotion.name" id="name" type="text" required />
-
       <!-- Pourcentage de réduction -->
       <label for="discount">Pourcentage de réduction</label>
       <input
@@ -27,7 +23,7 @@
 
       <!-- Produits associés -->
       <label for="products">Produits associés</label>
-      <select v-model="promotion.product_ids" id="products" multiple>
+      <select v-model="selectedProductId" id="products">
         <option v-for="product in products" :key="product.id" :value="product.id">
           {{ product.name }}
         </option>
@@ -48,33 +44,34 @@ export default {
   data() {
     return {
       promotion: {
-        name: "",
+        id: "",
         percentage: null,
         start_date: "",
         end_date: "",
-        product_ids: [], // Initialisation pour éviter les erreurs
       },
-      products: [], // Produits disponibles
+      selectedProductId: null, // Produit associé à la promotion
+      products: [], // Liste de tous les produits disponibles
     };
   },
   async created() {
     try {
       const promotionId = this.$route.params.id;
 
-      // Récupérez les données de la promotion
+      // Récupérer les données de la promotion et du produit associé
       const fetchedPromotion = await fetchPromotionById(promotionId);
       console.log("Données de la promotion récupérées :", fetchedPromotion);
 
-      // Assurez-vous que `product_ids` est bien un tableau
-      this.promotion = {
-        name: fetchedPromotion.promotion.name || "",
-        percentage: fetchedPromotion.promotion.percentage || 0,
-        start_date: fetchedPromotion.promotion.start_date || "",
-        end_date: fetchedPromotion.promotion.end_date || "",
-        product_ids: fetchedPromotion.product_ids || [], // S'assurer que c'est un tableau
-      };
+      if (fetchedPromotion) {
+        this.promotion = {
+          id: fetchedPromotion.promotion.id,
+          percentage: fetchedPromotion.promotion.percentage,
+          start_date: fetchedPromotion.promotion.start_date,
+          end_date: fetchedPromotion.promotion.end_date,
+        };
+        this.selectedProductId = fetchedPromotion.product.id; // Associer le produit lié
+      }
 
-      // Chargez les produits disponibles
+      // Charger tous les produits disponibles pour l'affichage dans la liste
       this.products = await fetchProducts();
     } catch (error) {
       console.error("Erreur lors du chargement des données :", error);
@@ -83,7 +80,12 @@ export default {
   methods: {
     async handleSubmit() {
       try {
-        await updatePromotion(this.promotion.id, this.promotion);
+        await updatePromotion(this.promotion.id, {
+          percentage: this.promotion.percentage,
+          start_date: this.promotion.start_date, // Correspond à `created_at`
+          end_date: this.promotion.end_date, // Correspond à `end_at`
+        });
+
         alert("Promotion modifiée avec succès !");
         this.$router.push("/Gestion/Promotions");
       } catch (error) {
@@ -136,3 +138,4 @@ button:hover {
   background-color: #007bb5;
 }
 </style>
+"
