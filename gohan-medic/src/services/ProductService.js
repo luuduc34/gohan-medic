@@ -44,6 +44,7 @@ export async function fetchProductByIdCategory(categorieId) {
 }
 
 // Récupérer toutes les catégories
+// Récupérer toutes les catégories
 export async function fetchCategories() {
   const { data, error } = await supabase.from("category_product").select("*");
   if (error) {

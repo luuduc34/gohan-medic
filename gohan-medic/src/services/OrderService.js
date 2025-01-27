@@ -15,8 +15,6 @@ export async function getUserOrders(id_user) {
         console.error("Erreur lors de la récupération des commandes :", error);
         throw new Error("Impossible de récupérer les commandes.");
       }
-  
-      console.log("Commandes récupérées :", data);
       return data;
     } catch (err) {
       console.error("Erreur interne :", err);
@@ -43,8 +41,7 @@ export async function getOrderLines(id_order) {
         console.error("Erreur lors de la récupération des lignes de commande :", error);
         throw new Error("Impossible de récupérer les lignes de commande.");
       }
-  
-      console.log("Lignes de commande récupérées avec noms des produits :", data);
+      
       return data;
     } catch (err) {
       console.error("Erreur interne :", err);

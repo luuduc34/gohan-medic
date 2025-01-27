@@ -121,7 +121,6 @@ export default {
       this.$router.push("/Order");
     },
     goToPanier() {
-      this.checkPanierType(); // Appelez la vérification avant de naviguer
       this.$router.push("/Panier");
     },
   },

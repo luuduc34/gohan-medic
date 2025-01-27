@@ -92,7 +92,6 @@ export async function fetchPromotionsForMultipleProducts(productIds) {
     return [];
   }
 
-  console.log("Données récupérées :", data);
 
   if (!data || data.length === 0) {
     console.warn("Aucune promotion trouvée pour les produits spécifiés.");

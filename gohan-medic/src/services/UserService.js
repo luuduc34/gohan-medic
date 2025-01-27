@@ -28,10 +28,8 @@ export async function registerWithEmail(email, password, nom, prenom) {
 }
 
 // Connexion avec email et mot de passe
-
 export async function loginWithEmail(email, password) {
   try {
-    console.log("Tentative de connexion avec :", email.trim(), password.trim());
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -43,12 +41,78 @@ export async function loginWithEmail(email, password) {
       return null;
     }
 
-    console.log("Connexion réussie :", data);
     return data;
   } catch (err) {
     console.error("Erreur inattendue :", err);
     alert("Une erreur inattendue est survenue.");
     return null;
+  }
+}
+
+// Connexion avec google
+export async function loginWithGoogle() {
+  try {
+    // Lancer le processus de connexion avec Google
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+    });
+    
+    if (error) {
+      console.error("Erreur lors de la connexion avec Google :", error.message);
+      throw new Error("Impossible de se connecter avec Google.");
+    }
+
+    // Attendre que l'utilisateur soit redirigé et connecté
+    const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError || !sessionData?.session?.user) {
+      console.error("Erreur lors de la récupération de la session après la connexion :", sessionError?.message);
+      throw new Error("Échec de la récupération de l'utilisateur après la connexion avec Google.");
+    }
+
+    // Récupération des informations utilisateur
+    const user = sessionData.session.user;
+    const { email, user_metadata } = user;
+    const nom = user_metadata?.full_name?.split(" ")[1] || "Nom inconnu";
+    const prenom = user_metadata?.full_name?.split(" ")[0] || "Prénom inconnu";
+
+    console.log("Utilisateur Google connecté :", { email, nom, prenom });
+
+    // Vérifier si l'utilisateur existe déjà dans la table `users`
+    const { data: existingUser, error: fetchError } = await supabase
+      .from("users")
+      .select("*")
+      .eq("id", user.id)
+      .single();
+
+    if (fetchError && fetchError.code !== "PGRST116") {
+      // PGRST116 correspond à "Row not found", donc on ignore cette erreur
+      console.error("Erreur lors de la vérification de l'utilisateur :", fetchError.message);
+      throw new Error("Erreur lors de la vérification de l'utilisateur.");
+    }
+
+    if (!existingUser) {
+      // Si l'utilisateur n'existe pas, l'insérer dans la table `users`
+      const { error: insertError } = await supabase.from("users").insert({
+        id: user.id,
+        email,
+        name: nom,
+        first_name: prenom,
+      });
+
+      if (insertError) {
+        console.error("Erreur lors de l'insertion de l'utilisateur :", insertError.message);
+        throw new Error("Erreur lors de l'enregistrement de l'utilisateur.");
+      }
+
+      console.log("Nouvel utilisateur enregistré avec succès :", { email, nom, prenom });
+    } else {
+      console.log("Utilisateur déjà existant :", existingUser);
+    }
+
+    return { success: true, user };
+  } catch (err) {
+    console.error("Erreur lors de la connexion avec Google :", err.message);
+    return { success: false, error: err.message };
   }
 }
 
@@ -94,15 +158,18 @@ export async function checkAuthStatus() {
 // Déconnecte l'utilisateur
 export async function logout() {
   try {
+    // Appelle Supabase pour déconnecter l'utilisateur
     const { error } = await supabase.auth.signOut();
+
     if (error) {
       console.error("Erreur lors de la déconnexion :", error.message);
-      return false;
+      return { success: false, error: error.message }; // Retourne un objet pour plus de clarté
     }
-    return true;
+
+    return { success: true, error: null }; // Indique une déconnexion réussie
   } catch (err) {
     console.error("Erreur inattendue :", err.message);
-    return false;
+    return { success: false, error: "Erreur inattendue lors de la déconnexion." };
   }
 }
 
