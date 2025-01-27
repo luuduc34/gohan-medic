@@ -10,7 +10,7 @@ const app = createApp(App);
 app.use(pinia);  // Utilisation de Pinia pour gérer l'état
 app.use(router);  // Utilisation de Vue Router pour la navigation
 app.use(GoogleLoginPlugin, {
-    clientId: '459113751075-9me3bhnmtv3bg6hneksgkmdr6mfmu33s.apps.googleusercontent.com',
+    clientId: '459113751075-koc14kmi6be24f2vn8s1b77hf816mq2b.apps.googleusercontent.com',
   });
 
 app.mount('#app');
