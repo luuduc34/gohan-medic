@@ -26,8 +26,7 @@ export async function insertAdresse({ userId, street, city, postalCode, country 
     }
 }
 
-
-  // Met à jour l'adresse d'un utilisateur
+// Met à jour l'adresse d'un utilisateur
 export async function updateAdresse({ id, userId, street, city, postalCode, country }) {
     try {
       const { data, error } = await supabase
@@ -52,8 +51,6 @@ export async function updateAdresse({ id, userId, street, city, postalCode, coun
       return null; // Retourne null en cas d'échec
     }
 }
-  
-
 
 // Récupère l'adresse d'un utilisateur par son ID
 export async function checkAdresse(id) {
