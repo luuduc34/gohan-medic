@@ -118,7 +118,6 @@ export async function fetchPromotionsForMultipleProducts(productIds) {
   return promotionsByProduct;
 }
 
-
 // Récupérer une promotion par produit ID
 export async function fetchPromotionsByProductId(productId) {
   const { data, error } = await supabase
@@ -185,7 +184,6 @@ export async function fetchPromotionsByProductId(productId) {
     endDate: promotion.end_at, // Date de fin de la promotion
   };
 }
-
 
 // Ajouter une promotion
 export async function addPromotion(promotionData, productId) {
@@ -303,7 +301,6 @@ export async function fetchPromotionsForManagement() {
     return [];
   }
 }
-
 
 // Update des validité des promotions
 export async function updatePromotionValidity() {

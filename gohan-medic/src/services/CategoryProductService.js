@@ -10,7 +10,5 @@ export async function fetchCategoryProducts() {
       return [];
     }
   
-    console.log("categorie récupérés :", category_product); // Log les categories récupérés
-  
     return category_product;
-  } 
+  }

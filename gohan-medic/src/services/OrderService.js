@@ -102,6 +102,7 @@ export async function insertOrder(id_user, total_price, shipping_costs) {
   }
 
   export async function create_order(total_price, shipping_costs) {
+    
     const basketStore = useBasketStore();
     const userStore = useUserStore();
     const orderStore = useUserOrderStore();
