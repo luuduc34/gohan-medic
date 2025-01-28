@@ -11,50 +11,42 @@
       <SearchBar v-model:searchQuery="searchQuery" />
     </div>
 
-    <!-- Section pour afficher les nouveaux produits dans un carrousel -->
+    <!-- Section Nouveautés -->
     <section class="carousel-section">
       <h2>Nouveautés</h2>
       <div class="carousel-container">
-        <!-- Bouton pour faire défiler les produits vers la gauche -->
         <button class="arrow left" @click="scrollCarousel('newProducts', 'left')">
           ⬅️
         </button>
-        <!-- Conteneur du carrousel -->
         <div class="carousel" ref="newProductsCarousel">
-          <!-- Affichage des cartes produit pour les nouveautés -->
           <ProductCard
-            v-for="product in filteredNewProducts"
+            v-for="product in filteredNewProducts.slice(0, itemsPerPage * 2)"
             :key="product.id"
             :product="product"
             @click="openProductDetail(product)"
           />
         </div>
-        <!-- Bouton pour faire défiler les produits vers la droite -->
         <button class="arrow right" @click="scrollCarousel('newProducts', 'right')">
           ➡️
         </button>
       </div>
     </section>
 
-    <!-- Section pour afficher les promotions dans un carrousel -->
+    <!-- Section Promotions -->
     <section class="carousel-section">
       <h2>Promotions</h2>
       <div class="carousel-container">
-        <!-- Bouton pour faire défiler les produits en promotion vers la gauche -->
         <button class="arrow left" @click="scrollCarousel('promotions', 'left')">
           ⬅️
         </button>
-        <!-- Conteneur du carrousel -->
         <div class="carousel" ref="promotionsCarousel">
-          <!-- Affichage des cartes produit pour les promotions -->
           <ProductCard
-            v-for="product in filteredPromotions"
+            v-for="product in filteredPromotions.slice(0, itemsPerPage * 2)"
             :key="product.id"
             :product="product"
             @click="openProductDetail(product)"
           />
         </div>
-        <!-- Bouton pour faire défiler les produits en promotion vers la droite -->
         <button class="arrow right" @click="scrollCarousel('promotions', 'right')">
           ➡️
         </button>
@@ -64,11 +56,11 @@
 </template>
 
 <script>
-import SearchBar from "@/components/SearchBar/SearchBar.vue"; // Composant pour la barre de recherche
-import { fetchProducts } from "@/services/ProductService"; // Service pour récupérer les produits
-import { fetchPromotionsForMultipleProducts } from "@/services/PromotionService"; // Service pour récupérer les promotions
-import ProductCard from "@/components/Product/ProductCard.vue"; // Composant pour afficher un produit
-import { useProductStore } from "@/stores/ProductStore"; // Store pour gérer les produits
+import SearchBar from "@/components/SearchBar/SearchBar.vue";
+import { fetchProducts } from "@/services/ProductService";
+import { fetchPromotionsForMultipleProducts } from "@/services/PromotionService";
+import ProductCard from "@/components/Product/ProductCard.vue";
+import { useProductStore } from "@/stores/ProductStore";
 
 export default {
   name: "HomePage",
@@ -78,51 +70,44 @@ export default {
   },
   data() {
     return {
-      searchQuery: "", // Texte de recherche saisi par l'utilisateur
-      newProducts: [], // Liste des nouveaux produits
-      promotions: [], // Liste des produits en promotion
+      searchQuery: "",
+      newProducts: [],
+      promotions: [],
+      itemsPerPage: 4, // Défaut : 4 items affichés
     };
   },
   async created() {
     try {
-      // Récupérer tous les produits depuis l'API
       const allProducts = await fetchProducts();
-
-      // Récupérer les promotions pour chaque produit
       const promotionsByProduct = await fetchPromotionsForMultipleProducts(
-        allProducts.map((product) => product.id) // Envoi de la liste des IDs des produits
+        allProducts.map((product) => product.id)
       );
 
-      // Enrichir les produits avec les données de promotion
       const enrichedProducts = allProducts.map((product) => {
         const promotion = promotionsByProduct[product.id];
-        return promotion ? { ...product, promotion } : product; // Ajout de la promotion si elle existe
+        return promotion ? { ...product, promotion } : product;
       });
 
-      // Filtrer les produits ajoutés dans les 30 derniers jours
       const today = new Date();
       const thirtyDaysAgo = new Date(today);
       thirtyDaysAgo.setDate(today.getDate() - 30);
 
       this.newProducts = enrichedProducts.filter((product) => {
         const createdAt = new Date(product.created_at);
-        return createdAt >= thirtyDaysAgo; // Seuls les produits récents
+        return createdAt >= thirtyDaysAgo;
       });
 
-      // Filtrer les produits qui ont une promotion
       this.promotions = enrichedProducts.filter((product) => product.promotion);
     } catch (error) {
       console.error("Erreur lors du chargement des données :", error.message);
     }
   },
   computed: {
-    // Liste des nouveaux produits filtrés par le texte de recherche
     filteredNewProducts() {
       return this.newProducts.filter((product) =>
         product.name.toLowerCase().includes(this.searchQuery.toLowerCase())
       );
     },
-    // Liste des produits en promotion filtrés par le texte de recherche
     filteredPromotions() {
       return this.promotions.filter((product) =>
         product.name.toLowerCase().includes(this.searchQuery.toLowerCase())
@@ -130,38 +115,51 @@ export default {
     },
   },
   methods: {
-    // Fonction pour faire défiler un carrousel
+    adjustItemsPerPage() {
+      const screenWidth = window.innerWidth;
+      if (screenWidth >= 1200) {
+        this.itemsPerPage = 4;
+      } else if (screenWidth >= 800) {
+        this.itemsPerPage = 3;
+      } else {
+        this.itemsPerPage = 2;
+      }
+    },
     scrollCarousel(refName, direction) {
       const carousel = this.$refs[`${refName}Carousel`];
-      const scrollAmount = 300; // Nombre de pixels pour défiler
+      const scrollAmount = 300;
       carousel.scrollBy({
         left: direction === "left" ? -scrollAmount : scrollAmount,
-        behavior: "smooth", // Défilement fluide
+        behavior: "smooth",
       });
     },
-    // Ouvrir la page des détails du produit
     openProductDetail(product) {
       const productStore = useProductStore();
-      productStore.setProduct(product); // Stocker le produit dans le store
-      this.$router.push({ name: "ProductDetail" }); // Rediriger vers la page de détails
+      productStore.setProduct(product);
+      this.$router.push({ name: "ProductDetail" });
     },
+  },
+  mounted() {
+    this.adjustItemsPerPage();
+    window.addEventListener("resize", this.adjustItemsPerPage);
+  },
+  beforeUnmount() {
+    window.removeEventListener("resize", this.adjustItemsPerPage);
   },
 };
 </script>
 
 <style scoped>
-/* Conteneur de recherche */
 .search-container {
   margin: 20px auto;
   text-align: center;
 }
 
-/* Section héroïque */
 .hero-section {
   text-align: center;
   padding: 40px 20px;
-  background: linear-gradient(120deg, #d9e6f2, #f0f8ff); /* Dégradé de bleu */
-  color: #333; /* Texte en gris foncé */
+  background: linear-gradient(120deg, #d9e6f2, #f0f8ff);
+  color: #333;
 }
 
 .hero-section h1 {
@@ -174,7 +172,6 @@ export default {
   margin-top: 10px;
 }
 
-/* Section de carrousel */
 .carousel-section {
   margin: 40px auto;
   max-width: 1200px;
@@ -182,28 +179,34 @@ export default {
 
 .carousel-section h2 {
   font-size: 2rem;
-  color: #007bff; /* Texte bleu */
+  color: #007bff;
   margin-bottom: 20px;
   text-align: center;
 }
 
-/* Conteneur du carrousel */
+/* Conteneur du carrousel ajusté */
 .carousel-container {
   position: relative;
   display: flex;
   align-items: center;
+  width: 100%;
+  overflow: visible; /* Permet d'afficher les flèches correctement */
+  max-width: 1200px; /* Limite la largeur */
+  margin: 0 auto; /* Centrer le carrousel */
 }
 
+/* Ajustement des cartes */
 .carousel {
   display: flex;
   gap: 1rem;
-  overflow-x: auto; /* Défilement horizontal */
+  overflow-x: auto;
+  scroll-behavior: smooth;
   padding: 10px;
-  scroll-behavior: smooth; /* Défilement fluide */
+  width: 100%;
 }
 
 .carousel::-webkit-scrollbar {
-  height: 8px;
+  display: none;
 }
 
 .carousel::-webkit-scrollbar-thumb {
@@ -215,34 +218,45 @@ export default {
   background: #f0f0f0;
 }
 
-/* Flèches pour défiler */
+/* Taille des cartes produit dynamique selon itemsPerPage */
+.carousel .product-card {
+  flex: 0 0 calc(100% / v-bind(itemsPerPage) - 1rem);
+  max-width: calc(100% / v-bind(itemsPerPage) - 1rem);
+}
+
 .arrow {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  background: #007bff; /* Bleu */
+  background: #007bff;
   color: white;
   border: none;
   border-radius: 50%;
-  width: 40px;
-  height: 40px;
+  width: 35px; /* Réduction de la taille */
+  height: 35px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Ombre */
-  z-index: 1;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  z-index: 10; /* S'assurer que les flèches restent visibles */
 }
 
 .arrow.left {
-  left: -20px;
+  left: -10px; /* Ajustement pour éviter de dépasser */
 }
 
 .arrow.right {
-  right: -20px;
+  right: -10px; /* Ajustement pour éviter de dépasser */
 }
 
 .arrow:hover {
-  background: #0056b3; /* Bleu plus foncé au survol */
+  background: #0056b3;
+}
+
+/* Ajustement dynamique de la taille des cartes */
+.carousel .product-card {
+  flex: 0 0 calc(100% / v-bind(itemsPerPage) - 1rem);
+  max-width: calc(100% / v-bind(itemsPerPage) - 1rem);
 }
 </style>
