@@ -1,8 +1,12 @@
+// Importation du client Supabase configuré
 import { supabase } from "@/lib/supabaseClient";
 
-// Récupérer les promotions avec produits associés
+/**
+ * Récupérer toutes les promotions avec leurs produits associés
+ */
 export async function fetchPromotions() {
   try {
+    // Requête pour obtenir les promotions valides et leurs produits associés
     const { data, error } = await supabase
       .from("promotion_product")
       .select(`
@@ -20,29 +24,29 @@ export async function fetchPromotions() {
           created_at,
           end_at
         )
-      `)
-      .eq("promotion.is_valid", true) // Seules les promotions valides
-      .eq("product.is_promotion", true); // Seuls les produits en promotion
+      `)        
+      .eq("promotion.is_valid", true) // Filtrer uniquement les promotions valides
+      .eq("product.is_promotion", true); // Filtrer uniquement les produits ayant une promotion active
 
     if (error) {
       console.error("Erreur lors de la récupération des promotions :", error);
       return [];
     }
 
-    // Assurez-vous que les données sont correctement formatées et non nulles
+    // Filtrer et transformer les données pour le formatage final
     const formattedData = data
-      .filter(({ product, promotion }) => product && promotion) // Exclure les entrées invalides
+      .filter(({ product, promotion }) => product && promotion) // Supprimer les entrées invalides
       .map(({ product, promotion }) => {
         const discountedPrice =
-          product.price - (product.price * promotion.percentage) / 100;
+          product.price - (product.price * promotion.percentage) / 100; // Calcul du prix remisé
 
         return {
-          id: promotion.id,
-          name: product.name,
+          id: promotion.id, // ID de la promotion
+          name: product.name, // Nom du produit
           originalPrice: product.price, // Prix initial du produit
-          discountedPrice: discountedPrice.toFixed(2), // Prix remisé
+          discountedPrice: discountedPrice.toFixed(2), // Prix après remise
           percentage: promotion.percentage, // Pourcentage de réduction
-          picture: product.picture, // Image du produit
+          picture: product.picture, // URL de l'image du produit
           startDate: promotion.created_at, // Date de début de la promotion
           endDate: promotion.end_at, // Date de fin de la promotion
         };
@@ -56,7 +60,9 @@ export async function fetchPromotions() {
   }
 }
 
-// Récupérer les promotions pour plusieurs produits
+/**
+ * Récupérer les promotions associées à une liste d'ID de produits
+ */
 export async function fetchPromotionsForMultipleProducts(productIds) {
   const { data, error } = await supabase
     .from("promotion_product")
@@ -77,9 +83,9 @@ export async function fetchPromotionsForMultipleProducts(productIds) {
         is_valid
       )
     `)
-    .in("product_id", productIds) // Filtrer par plusieurs IDs produits
-    .eq("product.is_promotion", true) // Filtrer les produits en promotion
-    .eq("promotion.is_valid", true); // Filtrer les promotions valides
+    .in("product_id", productIds) // Filtrer par une liste d'ID produits
+    .eq("product.is_promotion", true) // Seuls les produits en promotion
+    .eq("promotion.is_valid", true); // Seules les promotions valides
 
   if (error) {
     console.error("Erreur lors de la récupération des promotions :", error);
@@ -92,103 +98,38 @@ export async function fetchPromotionsForMultipleProducts(productIds) {
     return [];
   }
 
-  // Organiser les promotions par produit
+  // Réorganiser les promotions par produit pour un accès rapide
   const promotionsByProduct = data.reduce((acc, entry) => {
     const { product, promotion } = entry;
+
     if (!promotion || !product) return acc;
 
     const discountedPrice =
       product.price - (product.price * promotion.percentage) / 100;
 
-    if (!acc[product.id]) {
-      acc[product.id] = {
-        id: promotion.id,
-        name: product.name,
-        originalPrice: product.price,
-        discountedPrice: discountedPrice.toFixed(2),
-        percentage: promotion.percentage,
-        picture: product.picture,
-        startDate: promotion.created_at,
-        endDate: promotion.end_at,
-      };
-    }
+    // Ajouter au dictionnaire
+    acc[product.id] = {
+      id: promotion.id,
+      name: product.name,
+      originalPrice: product.price,
+      discountedPrice: discountedPrice.toFixed(2),
+      percentage: promotion.percentage,
+      picture: product.picture,
+      startDate: promotion.created_at,
+      endDate: promotion.end_at,
+    };
     return acc;
   }, {});
 
   return promotionsByProduct;
 }
 
-// Récupérer une promotion par produit ID
-export async function fetchPromotionsByProductId(productId) {
-  const { data, error } = await supabase
-    .from("promotion_product")
-    .select(`
-      product:product_id (
-        id,
-        name,
-        price,
-        description,
-        picture,
-        is_promotion
-      ),
-      promotion:promotion_id (
-        id,
-        percentage,
-        created_at,
-        end_at,
-        is_valid
-      )
-    `)
-    .eq("product_id", productId) // Filtrer par ID produit
-    .eq("product.is_promotion", true) // Filtrer les produits en promotion
-    .eq("promotion.is_valid", true); // Filtrer les promotions valides
-
-  if (error) {
-    console.error("Erreur lors de la récupération de la promotion :", error);
-    return null;
-  }
-
-  console.log("Données récupérées :", data);
-
-  if (!data || data.length === 0) {
-    console.warn("Aucune promotion trouvée pour le produit :", productId);
-    return null;
-  }
-
-  // Filtrer pour ne garder que les entrées où 'promotion' est non-null
-  const validPromotion = data.filter(entry => entry.promotion !== null && entry.promotion.is_valid === true);
-
-  if (validPromotion.length === 0) {
-    console.warn("Aucune promotion valide trouvée pour le produit :", productId);
-    return null;
-  }
-
-  const { promotion, product } = validPromotion[0];
-
-  if (!promotion || !product) {
-    console.error("Promotion ou produit manquant :", { product, promotion });
-    return null;
-  }
-
-  const discountedPrice =
-    product.price - (product.price * promotion.percentage) / 100;
-
-  return {
-    id: promotion.id,
-    name: product.name,
-    originalPrice: product.price, // Prix initial du produit
-    discountedPrice: discountedPrice.toFixed(2), // Prix remisé
-    percentage: promotion.percentage, // Pourcentage de réduction
-    picture: product.picture, // Image du produit
-    startDate: promotion.created_at, // Date de début de la promotion
-    endDate: promotion.end_at, // Date de fin de la promotion
-  };
-}
-
-// Ajouter une promotion
+/**
+ * Ajouter une nouvelle promotion
+ */
 export async function addPromotion(promotionData, productId) {
   try {
-    // Vérifier que les dates sont valides
+    // Vérification des dates de la promotion
     const currentDate = new Date();
     const startDate = new Date(promotionData.created_at);
     const endDate = new Date(promotionData.end_at);
@@ -219,7 +160,7 @@ export async function addPromotion(promotionData, productId) {
       throw new Error("Erreur lors de la liaison produit-promotion : " + linkError.message);
     }
 
-    // Étape 3 : Mettre à jour `is_promotion` dans le produit
+    // Étape 3 : Activer is_promotion dans le produit
     const { error: updateError } = await supabase
       .from("product")
       .update({ is_promotion: true })
@@ -236,35 +177,82 @@ export async function addPromotion(promotionData, productId) {
   }
 }
 
-// Récupérer une promotion par ID
+// Récupérer une promotion spécifique par son ID avec les détails du produit
 export async function fetchPromotionById(promotionId) {
-  const { data, error } = await supabase
-    .from("promotion")
-    .select("*, promotion_product(product_id)")
-    .eq("id", promotionId)
-    .single();
+  try {
+    const { data, error } = await supabase
+      .from("promotion_product")
+      .select(`
+        product:product_id (
+          id,
+          name,
+          price,
+          description
+        ),
+        promotion:promotion_id (
+          id,
+          percentage,
+          created_at,
+          end_at
+        )
+      `)
+      .eq("promotion_id", promotionId)
+      .single();
 
-  if (error) {
-    console.error("Erreur lors de la récupération de la promotion :", error);
+    if (error) {
+      console.error("Erreur lors de la récupération de la promotion :", error);
+      return null;
+    }
+
+    return {
+      promotion: {
+        id: data.promotion.id,
+        percentage: data.promotion.percentage,
+        start_date: data.promotion.created_at.split("T")[0], // Format YYYY-MM-DD
+        end_date: data.promotion.end_at.split("T")[0],
+      },
+      product: {
+        id: data.product.id,
+        name: data.product.name,
+        price: data.product.price,
+        description: data.product.description,
+      },
+    };
+  } catch (error) {
+    console.error("Erreur critique lors de la récupération de la promotion :", error);
     return null;
   }
-
-  return data;
 }
 
-// Modifier une promotion
-export async function updatePromotion(promotionId, updatedData) {
-  const { error } = await supabase
-    .from("promotion")
-    .update(updatedData)
-    .eq("id", promotionId);
 
-  if (error) {
-    console.error("Erreur lors de la mise à jour de la promotion :", error);
-    throw new Error(error.message);
+// Mettre à jour une promotion avec des données modifiées
+export async function updatePromotion(promotionId, updatedData) {
+  try {
+    console.log("Données envoyées pour la mise à jour :", updatedData);
+
+    const dataToUpdate = {
+      percentage: updatedData.percentage,
+      created_at: updatedData.start_date,
+      end_at: updatedData.end_date,
+    };
+
+    const { error } = await supabase
+      .from("promotion")
+      .update(dataToUpdate)
+      .eq("id", promotionId);
+
+    if (error) {
+      console.error("Erreur lors de la mise à jour de la promotion :", error);
+      throw new Error(error.message);
+    }
+  } catch (error) {
+    console.error("Erreur critique lors de la mise à jour de la promotion :", error);
+    throw error;
   }
 }
 
+
+// Récupérer toutes les promotions pour la gestion (affichage)
 export async function fetchPromotionsForManagement() {
   try {
     const { data, error } = await supabase
@@ -281,13 +269,14 @@ export async function fetchPromotionsForManagement() {
           id,
           name
         )
-      `);
+      `); // Sélectionne les promotions et les produits associés
 
     if (error) {
       console.error("Erreur lors de la récupération des promotions :", error);
       return [];
     }
 
+    // Formate les données pour les rendre plus exploitables
     return data.map(({ promotion, product }) => ({
       promotionId: promotion.id,
       productName: product.name,
@@ -302,17 +291,17 @@ export async function fetchPromotionsForManagement() {
   }
 }
 
-// Update des validité des promotions
+// Mettre à jour la validité des promotions (désactiver celles expirées)
 export async function updatePromotionValidity() {
-  const currentDate = new Date().toISOString();
+  const currentDate = new Date().toISOString(); // Date actuelle au format ISO
 
   try {
-    // Récupérer les promotions expirées
+    // Étape 1 : Récupérer les promotions expirées
     const { data: expiredPromotions, error: expiredError } = await supabase
       .from("promotion")
-      .select("id")
-      .lt("end_at", currentDate) // end_at < currentDate
-      .eq("is_valid", true);
+      .select("id") // Récupère uniquement les IDs des promotions
+      .lt("end_at", currentDate) // Filtre les promotions expirées (end_at < currentDate)
+      .eq("is_valid", true); // Seules les promotions encore valides
 
     if (expiredError) {
       console.error("Erreur lors de la récupération des promotions expirées :", expiredError);
@@ -322,21 +311,21 @@ export async function updatePromotionValidity() {
     if (expiredPromotions.length > 0) {
       const expiredPromotionIds = expiredPromotions.map((promo) => promo.id);
 
-      // Mettre à jour `is_valid` dans la table `promotion`
+      // Étape 2 : Désactiver les promotions expirées
       const { error: updatePromotionError } = await supabase
         .from("promotion")
-        .update({ is_valid: false })
-        .in("id", expiredPromotionIds);
+        .update({ is_valid: false }) // Met is_valid à false
+        .in("id", expiredPromotionIds); // Filtre par les IDs des promotions expirées
 
       if (updatePromotionError) {
         console.error("Erreur lors de la mise à jour des promotions expirées :", updatePromotionError);
       }
 
-      // Mettre à jour `is_promotion` dans la table `product`
+      // Étape 3 : Récupérer les produits liés aux promotions expirées
       const { data: promotionProducts, error: productError } = await supabase
         .from("promotion_product")
-        .select("product_id")
-        .in("promotion_id", expiredPromotionIds);
+        .select("product_id") // Récupère les IDs des produits
+        .in("promotion_id", expiredPromotionIds); // Filtre par les IDs des promotions expirées
 
       if (productError) {
         console.error("Erreur lors de la récupération des produits :", productError);
@@ -345,10 +334,11 @@ export async function updatePromotionValidity() {
 
       const productIds = promotionProducts.map((p) => p.product_id);
 
+      // Étape 4 : Désactiver les promotions pour les produits concernés
       const { error: updateProductError } = await supabase
         .from("product")
-        .update({ is_promotion: false })
-        .in("id", productIds);
+        .update({ is_promotion: false }) // Met is_promotion à false
+        .in("id", productIds); // Filtre par les IDs des produits concernés
 
       if (updateProductError) {
         console.error("Erreur lors de la mise à jour des produits :", updateProductError);
@@ -359,24 +349,24 @@ export async function updatePromotionValidity() {
   }
 }
 
-// Désactiver une promotion (Soft Delete)
+// Désactiver une promotion (soft delete)
 export async function softDeletePromotion(promotionId) {
   try {
-    // Étape 1 : Désactiver la promotion en mettant is_valid à false
+    // Étape 1 : Désactiver la promotion
     const { error: promotionError } = await supabase
       .from("promotion")
-      .update({ is_valid: false })
-      .eq("id", promotionId);
+      .update({ is_valid: false }) // Met is_valid à false
+      .eq("id", promotionId); // Filtre par l'ID de la promotion
 
     if (promotionError) {
       throw new Error("Erreur lors de la suppression de la promotion : " + promotionError.message);
     }
 
-    // Étape 2 : Récupérer les produits liés à la promotion
+    // Étape 2 : Récupérer les produits liés à cette promotion
     const { data: products, error: productError } = await supabase
       .from("promotion_product")
-      .select("product_id")
-      .eq("promotion_id", promotionId);
+      .select("product_id") // Récupère les IDs des produits
+      .eq("promotion_id", promotionId); // Filtre par l'ID de la promotion
 
     if (productError) {
       throw new Error("Erreur lors de la récupération des produits liés : " + productError.message);
@@ -389,11 +379,11 @@ export async function softDeletePromotion(promotionId) {
 
     const productIds = products.map((product) => product.product_id);
 
-    // Étape 3 : Mettre à jour is_promotion à false dans la table product
+    // Étape 3 : Désactiver le statut promotionnel des produits
     const { error: updateError } = await supabase
       .from("product")
-      .update({ is_promotion: false })
-      .in("id", productIds);
+      .update({ is_promotion: false }) // Met is_promotion à false
+      .in("id", productIds); // Filtre par les IDs des produits
 
     if (updateError) {
       throw new Error("Erreur lors de la mise à jour des produits : " + updateError.message);

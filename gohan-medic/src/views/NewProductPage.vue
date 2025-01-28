@@ -1,23 +1,23 @@
 <template>
   <div class="add-product-page">
-    <!-- Titre principal -->
+    <!-- Titre principal de la page -->
     <h1 class="page-title">Ajouter un Produit</h1>
 
-    <!-- Formulaire d'ajout -->
+    <!-- Formulaire pour ajouter un produit -->
     <form @submit.prevent="handleSubmit" class="add-product-form">
-      <!-- Champ Nom -->
+      <!-- Champ pour le nom du produit -->
       <label for="name">Nom du produit</label>
       <input v-model="form.name" id="name" type="text" required />
 
-      <!-- Champ Prix -->
+      <!-- Champ pour le prix du produit -->
       <label for="price">Prix</label>
       <input v-model="form.price" id="price" type="number" step="0.01" required />
 
-      <!-- Champ Description -->
+      <!-- Champ pour la description du produit -->
       <label for="description">Description</label>
       <textarea v-model="form.description" id="description" rows="3" required></textarea>
 
-      <!-- Champ Catégorie -->
+      <!-- Sélecteur pour la catégorie du produit -->
       <label for="category">Catégorie</label>
       <select v-model="form.category_id" id="category" required>
         <option v-for="category in categories" :key="category.id" :value="category.id">
@@ -25,44 +25,52 @@
         </option>
       </select>
 
-      <!-- Champ Image -->
+      <!-- Champ pour l'URL de l'image du produit -->
       <label for="picture">URL de l'image</label>
       <input v-model="form.picture" id="picture" type="url" required />
 
-      <!-- Bouton Ajouter -->
+      <!-- Bouton pour soumettre le formulaire -->
       <button type="submit">Ajouter</button>
     </form>
   </div>
 </template>
 
 <script>
-import { fetchCategories, addProduct } from "@/services/ProductService";
+import { fetchCategories, addProduct } from "@/services/ProductService"; // Importation des services nécessaires
 
 export default {
-  name: "NewProductPage",
+  name: "NewProductPage", // Nom du composant
   data() {
     return {
+      // Objet contenant les données du formulaire
       form: {
-        name: "",
-        price: "",
-        description: "",
-        category_id: "",
-        picture: "",
+        name: "", // Nom du produit
+        price: "", // Prix du produit
+        description: "", // Description du produit
+        category_id: "", // ID de la catégorie sélectionnée
+        picture: "", // URL de l'image du produit
       },
-      categories: [], // Liste des catégories
+      categories: [], // Liste des catégories disponibles
     };
   },
   async created() {
-    // Charger les catégories disponibles
-    this.categories = await fetchCategories();
-    console.log("Catégories chargées :", this.categories);
+    // Charger les catégories disponibles au moment de la création du composant
+    try {
+      this.categories = await fetchCategories();
+      console.log("Catégories chargées :", this.categories); // Log des catégories pour vérifier le chargement
+    } catch (error) {
+      console.error("Erreur lors du chargement des catégories :", error);
+    }
   },
   methods: {
+    // Méthode pour gérer la soumission du formulaire
     async handleSubmit() {
-      console.log("Formulaire soumis avec :", this.form);
+      console.log("Formulaire soumis avec :", this.form); // Log des données du formulaire
       try {
+        // Appeler le service pour ajouter un produit
         await addProduct(this.form);
         alert("Produit ajouté avec succès !");
+        // Rediriger vers la page de gestion des stocks après ajout
         this.$router.push("/Gestion/Stock");
       } catch (error) {
         console.error("Erreur lors de l'ajout du produit :", error);
@@ -73,6 +81,7 @@ export default {
 </script>
 
 <style scoped>
+/* Conteneur principal */
 .add-product-page {
   max-width: 600px;
   margin: 20px auto;
@@ -82,6 +91,7 @@ export default {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
+/* Style du titre principal */
 .page-title {
   text-align: center;
   font-size: 2rem;
@@ -89,17 +99,20 @@ export default {
   margin-bottom: 20px;
 }
 
+/* Style du formulaire */
 .add-product-form {
   display: flex;
   flex-direction: column;
 }
 
+/* Style des étiquettes */
 label {
   font-weight: bold;
   margin-bottom: 5px;
   color: #333;
 }
 
+/* Style des champs d'entrée, de texte, et du sélecteur */
 input,
 textarea,
 select {
@@ -110,6 +123,7 @@ select {
   font-size: 1rem;
 }
 
+/* Style du bouton */
 button {
   padding: 10px;
   background-color: #2d9cdb;
