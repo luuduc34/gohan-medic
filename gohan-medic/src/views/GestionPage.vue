@@ -20,7 +20,7 @@
         </li>
         <!-- Lien vers la gestion des prescriptions -->
         <li>
-          <router-link to="/Gestion/Ordonnances">Gestion des prescription</router-link>
+          <router-link to="/Gestion/Ordonnances">Gestion des ordonnances</router-link>
         </li>
       </ul>
     </div>

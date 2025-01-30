@@ -17,21 +17,20 @@
         <h3>{{ product.name }}</h3>
       </div>
 
-      <!-- Affiche le prix barré si le produit est en promo -->
+      <!-- Prix aligné pour tous les produits -->
       <div class="price">
-        <div
-          v-if="product.is_promotion && product.promotion?.discountedPrice"
-          class="price-wrapper"
-        >
-          <p class="original-price">{{ product.price }} €</p>
-          <!-- Conteneur pour le prix promotionnel (en dessous du prix barré) -->
-          <div class="discounted-price-container">
-            <p class="discounted-price">{{ product.promotion.discountedPrice }} €</p>
-          </div>
-        </div>
-        <!-- Sinon, affiche simplement le prix normal -->
-        <div v-else>
-          <span>{{ product.price }} €</span>
+        <div class="price-wrapper">
+          <!-- Prix barré pour les promos, affiché normalement sinon -->
+          <p class="original-price" :class="{ visible: product.is_promotion }">
+            {{ product.price }} €
+          </p>
+          <!-- Prix promotionnel affiché seulement si promo -->
+          <p
+            v-if="product.is_promotion && product.promotion?.discountedPrice"
+            class="discounted-price"
+          >
+            {{ product.promotion.discountedPrice }} €
+          </p>
         </div>
       </div>
     </div>
@@ -65,7 +64,7 @@ export default {
   },
   methods: {
     handleClick() {
-      this.$emit("click"); // Émet l'événement au parent pour gérer l'ouverture du détail
+      this.$emit("click");
     },
   },
 };
@@ -113,44 +112,51 @@ export default {
   margin: 0;
 }
 
+/* Bloc prix uniformisé */
 .price {
-  text-align: right;
+  min-height: 40px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
+/* Conteneur des prix : même structure pour tous les produits */
 .price-wrapper {
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  min-height: 30px; /* Garde une hauteur uniforme */
 }
 
-.price-barred-and-name {
-  display: flex;
-  align-items: center; /* Aligne le prix barré au même niveau que le nom */
-}
-
+/* Toujours afficher le prix normal, sauf si le produit est en promo */
 .original-price {
+  font-size: 1.2rem;
+  min-width: 50px; /* Fixe une largeur minimale pour aligner les prix */
+  color: #222; /* Couleur normale */
+}
+
+/* Si c'est une promo, alors barrer */
+.price-wrapper .original-price.visible {
   text-decoration: line-through;
   color: #888;
-  margin-right: 10px; /* Espacement entre le nom et le prix barré */
 }
 
-.discounted-price-container {
-  margin-top: 5px; /* Ajoute un espacement entre le prix barré et le prix promotionnel */
-  text-align: right;
-}
-
+/* Prix promo bien visible */
 .discounted-price {
   color: #d32f2f;
   font-weight: bold;
+  font-size: 1.2rem;
 }
 
+/* Description uniformisée */
 .product-description {
   padding: 10px;
   font-size: 14px;
   color: #555;
   text-align: justify;
   border-top: 1px solid #ddd;
-  margin-top: 10px;
+  min-height: 50px;
 }
 
 /* Macaron de réduction */
