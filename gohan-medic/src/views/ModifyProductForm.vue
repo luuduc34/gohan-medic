@@ -70,6 +70,8 @@ export default {
     } catch (error) {
       console.error("Erreur lors du chargement :", error); // Affiche une erreur si les données ne peuvent pas être chargées
     }
+
+    console.log(this.product);
   },
 
   methods: {

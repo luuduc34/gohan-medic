@@ -2,51 +2,52 @@ import { supabase } from "@/lib/supabaseClient";
 
 // Récupérer tous les produits actifs
 export async function fetchProducts(limit = null) {
-  let query = supabase.from('product').select('*').eq('is_active', true); // Filtrer uniquement les produits actifs
-  
-  // Si une limite est spécifiée, l'ajouter à la requête
-  if (limit) {
-    query = query.limit(limit);
-  }
+  try {
+    // Appel de la procédure stockée pour récupérer les produits actifs avec une limite éventuelle
+    const { data: products, error } = await supabase
+      .rpc("fetch_active_products", {
+        limit_param: limit
+      });
 
-  const { data: product, error } = await query;
+    // Gérer les erreurs
+    if (error) {
+      console.error("Erreur lors de la récupération des produits :", error);
+      return []; // Retourner une liste vide en cas d'erreur
+    }
 
-  if (error) {
-    console.error("Erreur lors de la récupération des produits :", error);
+    return products; // Retourner les produits actifs
+  } catch (error) {
+    console.error("Erreur dans fetchProducts :", error);
     return []; // Retourner une liste vide en cas d'erreur
   }
-
-  console.log("Produits récupérés :", product); // Afficher les produits récupérés pour debug
-
-  return product; // Retourne les produits actifs
 }
 
 // Récupérer un produit par son ID
 export async function fetchProductById(productId) {
   const { data, error } = await supabase
-    .from('product')
-    .select('*')
-    .eq('id', productId) // Filtrer par l'ID du produit
-    .single(); // Retourner un seul résultat
+    .rpc('get_product_by_id', { p_product_id: productId }); // Appel de la procédure stockée
+
   if (error) throw error; // Lancer une erreur si la requête échoue
-  return data;
+
+  return data.length > 0 ? data[0] : null; // Retourner le premier produit ou null si aucun résultat
 }
 
 // Récupérer les produits par catégorie
 export async function fetchProductByIdCategory(categorieId) {
+
   const { data, error } = await supabase
-    .from('product')
-    .select('*')
-    .eq('category_id', categorieId) // Filtrer par catégorie
-    .eq('is_active', true); // Filtrer les produits actifs
-  if (error) throw error;
-  return data;
+    .rpc('get_products_by_category', { p_category_id: categorieId });
+
+  if (error) throw error; // Lancer une erreur si la requête échoue
+
+  return data; // Retourner la liste des produits
 }
 
 // Récupérer toutes les catégories
-// Récupérer toutes les catégories
 export async function fetchCategories() {
-  const { data, error } = await supabase.from("category_product").select("*");
+  const { data, error } = await supabase
+    .rpc('get_all_categories'); // Appel de la procédure stockée
+
   if (error) {
     console.error("Erreur lors du chargement des catégories :", error);
     return []; // Retourner une liste vide en cas d'erreur
@@ -56,19 +57,42 @@ export async function fetchCategories() {
 
 // Ajouter un produit
 export async function addProduct(productData) {
-  const { data, error } = await supabase.from("product").insert([productData]);
+  const { name, price, description, category_id, picture } = productData;
+  
+  // Appeler la fonction stockée pour ajouter le produit
+  const { data, error } = await supabase
+    .rpc('add_product', {
+      p_name: name,
+      p_price: price,
+      p_description: description,
+      p_category_id: category_id,
+      p_picture: picture
+    });
+
   if (error) {
     throw new Error("Erreur lors de l'ajout du produit : " + error.message);
   }
-  return data;
+
+  // Assurez-vous que les données sont bien renvoyées
+  return data; // Renvoie les données du produit ajouté
 }
 
 // Modifier un produit existant
 export async function updateProduct(productId, updatedData) {
   const { data, error } = await supabase
-    .from("product")
-    .update(updatedData) // Mettre à jour les champs spécifiés
-    .eq("id", productId); // Filtrer par l'ID du produit
+    .rpc('update_product', {
+      p_id: productId,
+      p_category_id: updatedData.category_id,
+      p_created_at: updatedData.created_at,
+      p_description: updatedData.description,
+      p_is_active: updatedData.is_active,
+      p_is_promotion: updatedData.is_promotion,
+      p_name: updatedData.name,
+      p_picture: updatedData.picture,
+      p_price: updatedData.price,
+      p_stock: updatedData.stock
+    });
+
   if (error) {
     throw new Error("Erreur lors de la mise à jour du produit : " + error.message);
   }
@@ -78,9 +102,7 @@ export async function updateProduct(productId, updatedData) {
 // Suppression "soft" d'un produit (désactivation)
 export async function softDeleteProduct(productId) {
   const { data, error } = await supabase
-    .from("product")
-    .update({ is_active: false }) // Mettre is_active à false
-    .eq("id", productId); // Filtrer par l'ID du produit
+    .rpc('soft_delete_product', { p_id: productId }); // Appel de la procédure stockée avec l'ID du produit
 
   if (error) {
     throw new Error("Erreur lors de la suppression du produit : " + error.message);
@@ -92,22 +114,16 @@ export async function softDeleteProduct(productId) {
 export async function checkStock(cart) {
   try {
     for (const item of cart) {
-      const { data: product, error } = await supabase
-        .from('product')
-        .select('stock') // Récupérer uniquement le stock du produit
-        .eq('id', item.id) // Filtrer par l'ID du produit
-        .single();
+      // Appeler la procédure stockée pour chaque produit
+      const { error } = await supabase
+        .rpc('check_product_stock', {
+          product_id: item.id, // Assurez-vous que item.id est de type uuid
+          required_quantity: item.quantity
+        });
 
       if (error) {
-        throw new Error(`Erreur lors de la vérification du stock pour le produit ID ${item.id} : ${error.message}`);
-      }
-
-      // Vérifier si la quantité demandée dépasse le stock disponible
-      if (!product || product.stock < item.quantity) {
-        return {
-          success: false,
-          message: `Le produit "${item.name}" n'est pas en stock ou la quantité demandée dépasse le stock disponible.`,
-        };
+        // Extraire le message d'erreur de la procédure stockée
+        throw new Error(error.message); // Le message d'erreur renvoyé par la procédure contient déjà les informations sur le produit
       }
     }
 
@@ -120,17 +136,18 @@ export async function checkStock(cart) {
     console.error("Erreur lors de la vérification du stock :", error);
     return {
       success: false,
-      message: "Une erreur s'est produite lors de la vérification des stocks.",
+      message: error.message, // Affichage du message d'erreur détaillé
     };
   }
 }
 
 // Mettre à jour le stock d'un produit
 export async function updateProductStock(productId, newStock) {
-  const { error } = await supabase
-    .from("product")
-    .update({ stock: newStock }) // Mettre à jour la valeur du stock
-    .eq("id", productId); // Filtrer par l'ID du produit
+  const { error } = await supabase.rpc('update_product_stock', {
+    product_id: productId, // Assurez-vous que productId est de type UUID
+    new_stock: newStock
+  });
+
   if (error) {
     throw new Error("Erreur lors de la mise à jour du stock : " + error.message);
   }

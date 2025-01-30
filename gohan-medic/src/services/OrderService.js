@@ -5,65 +5,49 @@ import { useUserOrderStore } from "@/stores/UserOrderStore";
 import { decrementProductStock } from "./ProductService";
 
 export async function getUserOrders(id_user) {
-    try {
-      const { data, error } = await supabase
-        .from("order")
-        .select("*")
-        .eq("id_user", id_user);
-  
-      if (error) {
-        console.error("Erreur lors de la récupération des commandes :", error);
-        throw new Error("Impossible de récupérer les commandes.");
-      }
-      return data;
-    } catch (err) {
-      console.error("Erreur interne :", err);
-      throw new Error("Une erreur est survenue lors de la récupération des commandes.");
+  try {
+    const { data: orders, error } = await supabase
+      .rpc("get_user_orders", { _id_user: id_user }); // Appel de la procédure stockée
+
+    if (error) {
+      console.error("Erreur lors de l'appel de la procédure stockée pour les commandes :", error.message);
+      throw new Error("Impossible de récupérer les commandes.");
     }
+
+    return orders || []; // Retourne les commandes ou un tableau vide
+  } catch (err) {
+    console.error("Erreur interne :", err.message);
+    throw new Error("Une erreur est survenue lors de la récupération des commandes.");
   }
+}
+
 
 export async function getOrderLines(id_order) {
-    try {
-      const { data, error } = await supabase
-        .from("order_line")
-        .select(`
-          id,
-          id_order,
-          quantity_ordered,
-          price,
-          product: id_product (
-            name
-          )
-        `)
-        .eq("id_order", id_order);
-  
-      if (error) {
-        console.error("Erreur lors de la récupération des lignes de commande :", error);
-        throw new Error("Impossible de récupérer les lignes de commande.");
-      }
-      
-      return data;
-    } catch (err) {
-      console.error("Erreur interne :", err);
-      throw new Error("Une erreur est survenue lors de la récupération des lignes de commande.");
+  try {
+    const { data: orderLines, error } = await supabase
+      .rpc("get_order_lines", { _id_order: id_order }); // Appel de la procédure stockée
+
+    if (error) {
+      console.error("Erreur lors de l'appel de la procédure stockée pour les lignes de commande :", error.message);
+      throw new Error("Impossible de récupérer les lignes de commande.");
     }
+
+    return orderLines || []; // Retourne les lignes de commande ou un tableau vide
+  } catch (err) {
+    console.error("Erreur interne :", err.message);
+    throw new Error("Une erreur est survenue lors de la récupération des lignes de commande.");
   }
+}
 
 
 export async function insertOrder(id_user, total_price, shipping_costs) {
     try {
       // Insérer une nouvelle commande dans la table `order`
-      const { data, error } = await supabase
-        .from("order")
-        .insert([
-          {
-            id_user,
-            total_price,
-            shipping_costs,
-            created_at: new Date().toISOString(), // Ajoute la date actuelle
-          },
-        ])
-        .select();
+      const { data, error } = await supabase.rpc("insert_order", {
+        _id_user: id_user,
+        _total_price: Number(total_price),  // S'assurer que c'est bien un nombre
+        _shipping_costs: Number(shipping_costs),
+      });
   
       if (error) {
         console.error("Erreur lors de l'insertion de la commande :", error);
@@ -76,32 +60,30 @@ export async function insertOrder(id_user, total_price, shipping_costs) {
       console.error("Erreur interne :", err);
       throw new Error("Une erreur est survenue lors de la création de la commande.");
     }
-  }
+}
 
-  export async function insertOrderLine(orderId, productID, quantity, price) {
-    try {
-      const { data, error } = await supabase
-        .from("order_line")
-        .insert({
-            id_order: orderId,
-            id_product: productID,
-            quantity_ordered: quantity,
-            price: price,
-        });
-  
+export async function insertOrderLine(orderId, productID, quantity, price) {
+  try {
+      const { data, error } = await supabase.rpc("insert_order_line", {
+          _id_order: orderId,
+          _id_product: productID,
+          _quantity_ordered: quantity,
+          _price: parseFloat(price), // Conversion en float si nécessaire
+      });
+
       if (error) {
-        console.error("Erreur lors de l'ajout de l'article :", error);
-        throw error;
+          console.error("Erreur lors de l'ajout de l'article :", error);
+          throw error;
       }
-  
+
       return data;
-    } catch (err) {
+  } catch (err) {
       console.error("Erreur interne :", err);
       throw err;
-    }
   }
+}
 
-  export async function create_order(total_price, shipping_costs) {
+export async function create_order(total_price, shipping_costs) {
     
     const basketStore = useBasketStore();
     const userStore = useUserStore();
@@ -122,7 +104,8 @@ export async function insertOrder(id_user, total_price, shipping_costs) {
       // Parcourir les articles du panier, insérer chaque ligne et diminuer le stock
       const lignesPromises = basketStore.basketItems.map(async (item) => {
         // Insérer une ligne de commande
-        const ligne = await insertOrderLine(order.id, item.id, item.quantity, item.price);
+
+        const ligne = await insertOrderLine(order.order_id, item.id, item.quantity, item.price);
   
         // Diminuer le stock après insertion de la ligne
         await decrementProductStock(item.id, item.quantity);
@@ -143,4 +126,4 @@ export async function insertOrder(id_user, total_price, shipping_costs) {
       console.error("Erreur lors de la création de la commande :", err);
       throw new Error("Une erreur est survenue lors de la création de la commande.");
     }
-  }
+}

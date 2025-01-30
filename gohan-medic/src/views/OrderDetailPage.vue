@@ -27,7 +27,7 @@
         </thead>
         <tbody>
           <tr v-for="line in orderLines" :key="line.id">
-            <td>{{ line.product.name }}</td>
+            <td>{{ line.product_name }}</td>
             <td>{{ line.quantity_ordered }}</td>
             <td>{{ formatCurrency(line.price) }}</td>
             <td>{{ formatCurrency(line.price * line.quantity_ordered) }}</td>

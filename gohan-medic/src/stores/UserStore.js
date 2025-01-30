@@ -42,6 +42,9 @@ export const useUserStore = defineStore("user", {
       try {
         const user = await checkAuthStatus();
 
+        console.log(user);
+        console.log(user.profile.adresse);
+
         if (user) {
           this.user = user;                       // Stocker les informations utilisateur
           this.isAuthenticated = true;           // Marquer l'utilisateur comme connecté
@@ -72,7 +75,6 @@ export const useUserStore = defineStore("user", {
       } catch (error) {
         this.resetState();
         this.error = "Impossible de récupérer les informations utilisateur.";
-        console.error("Erreur dans fetchUser:", error);
       }
     },
 

@@ -12,13 +12,15 @@ export async function registerWithEmail(email, password, nom, prenom) {
     const { data: user, error } = await supabase.auth.signUp({ email, password });
     if (error) throw new Error(error.message);
 
-    const { error: updateError } = await supabase.from("users").insert({
-      id: user.id,
-      email,
-      name: nom,
-      first_name: prenom,
+    // Utilisation de la procédure stockée pour l'insertion
+    const { error: insertError } = await supabase.rpc('insert_user', {
+      user_id: user.id,
+      user_email: email,
+      user_nom: nom,
+      user_prenom: prenom
     });
-    if (updateError) throw new Error(updateError.message);
+
+    if (insertError) throw new Error(insertError.message);
 
     return user;
   } catch (err) {
@@ -26,6 +28,7 @@ export async function registerWithEmail(email, password, nom, prenom) {
     throw err; // Renvoyer l'erreur pour un traitement personnalisé
   }
 }
+
 
 // Connexion avec email et mot de passe
 export async function loginWithEmail(email, password) {
@@ -55,17 +58,18 @@ export async function loginWithGoogle() {
     // Lancer le processus de connexion avec Google
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
+      options: {
+        redirectTo: window.location.origin, // Redirection vers la page d'origine
+      },
     });
     
     if (error) {
-      console.error("Erreur lors de la connexion avec Google :", error.message);
       throw new Error("Impossible de se connecter avec Google.");
     }
 
     // Attendre que l'utilisateur soit redirigé et connecté
     const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
     if (sessionError || !sessionData?.session?.user) {
-      console.error("Erreur lors de la récupération de la session après la connexion :", sessionError?.message);
       throw new Error("Échec de la récupération de l'utilisateur après la connexion avec Google.");
     }
 
@@ -75,32 +79,25 @@ export async function loginWithGoogle() {
     const nom = user_metadata?.full_name?.split(" ")[1] || "Nom inconnu";
     const prenom = user_metadata?.full_name?.split(" ")[0] || "Prénom inconnu";
 
-    console.log("Utilisateur Google connecté :", { email, nom, prenom });
+    // Vérifier si l'utilisateur existe déjà avec la procédure stockée
+    const { data: existingUser, error: fetchError } = await supabase.rpc('get_user_by_id', {
+      user_id: user.id
+    });
 
-    // Vérifier si l'utilisateur existe déjà dans la table `users`
-    const { data: existingUser, error: fetchError } = await supabase
-      .from("users")
-      .select("*")
-      .eq("id", user.id)
-      .single();
-
-    if (fetchError && fetchError.code !== "PGRST116") {
-      // PGRST116 correspond à "Row not found", donc on ignore cette erreur
-      console.error("Erreur lors de la vérification de l'utilisateur :", fetchError.message);
+    if (fetchError) {
       throw new Error("Erreur lors de la vérification de l'utilisateur.");
     }
 
     if (!existingUser) {
-      // Si l'utilisateur n'existe pas, l'insérer dans la table `users`
-      const { error: insertError } = await supabase.from("users").insert({
-        id: user.id,
-        email,
-        name: nom,
-        first_name: prenom,
+      // Si l'utilisateur n'existe pas, l'insérer via la procédure stockée
+      const { error: insertError } = await supabase.rpc('insert_user', {
+        user_id: user.id,
+        user_email: email,
+        user_nom: nom,
+        user_prenom: prenom
       });
 
       if (insertError) {
-        console.error("Erreur lors de l'insertion de l'utilisateur :", insertError.message);
         throw new Error("Erreur lors de l'enregistrement de l'utilisateur.");
       }
 
@@ -111,10 +108,10 @@ export async function loginWithGoogle() {
 
     return { success: true, user };
   } catch (err) {
-    console.error("Erreur lors de la connexion avec Google :", err.message);
     return { success: false, error: err.message };
   }
 }
+
 
 // Retourne l'utilisateur connecté
 export async function seeCurrentUser() {
@@ -132,11 +129,11 @@ export async function checkAuthStatus() {
     const { data: { user }, error } = await supabase.auth.getUser();
     if (error) throw new Error(error.message);
 
+    // Appel à la procédure stockée pour récupérer les infos utilisateur
     const { data: userData, error: userError } = await supabase
-      .from("users")
-      .select("*")
-      .eq("id", user.id)
+      .rpc("get_user_by_id", { user_id: user.id }) // Remplace par le bon nom de procédure
       .single();
+
     if (userError) throw new Error(userError.message);
 
     // Récupérer l'adresse de l'utilisateur
@@ -146,14 +143,15 @@ export async function checkAuthStatus() {
       ...user, 
       profile: { 
         ...userData, 
-        adresse: adresse || null // Ajoute l'adresse ou `null` si absente
+        adresse: adresse || null 
       } 
     };
   } catch (err) {
     console.error("Erreur lors de la vérification de l'utilisateur:", err.message);
-    return null; // Retourne null en cas d'échec
+    return null;
   }
 }
+
 
 // Déconnecte l'utilisateur
 export async function logout() {
@@ -176,9 +174,6 @@ export async function logout() {
 // Met à jour le nom et le prénom de l'utilisateur
 export async function updateUserProfile(userId, name, firstName) {
   try {
-    
-    
-
     console.log("ID user :", userId);
     console.log("Les données à modifier :", name, firstName);
 
@@ -187,21 +182,19 @@ export async function updateUserProfile(userId, name, firstName) {
       throw new Error("Les champs 'name' et 'firstName' sont obligatoires.");
     }
 
-    // Mise à jour dans la table users
-    const { error: updateError } = await supabase
-      .from("users")
-      .update({
-        name,
-        first_name: firstName,
-      })
-      .eq("id", userId);
+    // Appel de la procédure stockée
+    const { error: updateError } = await supabase.rpc("update_user_profile", {
+      p_id: userId,
+      p_name: name,
+      p_first_name: firstName,
+    });
 
     if (updateError) throw new Error(updateError.message);
 
     console.log("Profil utilisateur mis à jour avec succès.");
-    return true; // Retourne true en cas de succès
+    return true;
   } catch (err) {
     console.error("Erreur lors de la mise à jour du profil utilisateur:", err.message);
-    return false; // Retourne false en cas d'échec
+    return false;
   }
 }

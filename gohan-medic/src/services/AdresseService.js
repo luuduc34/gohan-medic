@@ -4,18 +4,13 @@ import { supabase } from "@/lib/supabaseClient";
 export async function insertAdresse({ userId, street, city, postalCode, country }) {
     try {
       const { data, error } = await supabase
-        .from("adresses")
-        .insert([
-          {
-            user_id: userId,
-            street,
-            city,
-            postal_code: postalCode,
-            country,
-          },
-        ])
-        .select()
-        .single(); // Retourne uniquement la ligne insérée
+      .rpc("insert_adresse", {
+        _user_id: userId,
+        _street: street,
+        _city: city,
+        _postal_code: postalCode,
+        _country: country,
+      });
   
       if (error) throw new Error(error.message);
   
@@ -30,18 +25,14 @@ export async function insertAdresse({ userId, street, city, postalCode, country 
 export async function updateAdresse({ id, userId, street, city, postalCode, country }) {
     try {
       const { data, error } = await supabase
-        .from("adresses")
-        .update({
-          street,
-          city,
-          postal_code: postalCode,
-          country,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", id) // Met à jour l'adresse par son ID
-        .eq("user_id", userId) // Vérifie que l'adresse appartient bien à l'utilisateur
-        .select()
-        .single(); // Retourne uniquement la ligne mise à jour
+      .rpc("update_adresse", {
+        _id: id,
+        _user_id: userId,
+        _street: street,
+        _city: city,
+        _postal_code: postalCode,
+        _country: country,
+      });
   
       if (error) throw new Error(error.message);
   
@@ -56,11 +47,7 @@ export async function updateAdresse({ id, userId, street, city, postalCode, coun
 export async function checkAdresse(id) {
     try {
       const { data: adresse, error } = await supabase
-        .from("adresses")
-        .select("*")
-        .eq("user_id", id)
-        .eq("is_default", true)
-        .single(); // On s'attend à ce qu'une seule adresse soit retournée
+      .rpc('check_default_adresse', { _user_id: id });
   
       if (error) {
         if (error.code === "PGRST116") {
@@ -70,7 +57,7 @@ export async function checkAdresse(id) {
         throw new Error(error.message); // Autres erreurs
       }
   
-      return adresse; // Retourne l'adresse trouvée
+      return adresse && adresse.length ? adresse[0] : null; // Retourne l'adresse trouvée
     } catch (err) {
       console.error("Erreur lors de la récupération de l'adresse:", err.message);
       return null; // Retourne null en cas d'erreur

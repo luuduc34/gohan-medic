@@ -30,6 +30,7 @@ export const createNotification = async (userId, message) => {
  * @param {string} userId - L'ID de l'utilisateur pour lequel récupérer les notifications.
  * @returns {Array} - Liste des notifications non lues.
  */
+
 export const fetchUnreadNotifications = async (userId) => {
   try {
     // Sélectionner les notifications non lues pour un utilisateur
@@ -57,6 +58,7 @@ export const fetchUnreadNotifications = async (userId) => {
  * Marque toutes les notifications d'un utilisateur comme lues.
  * @param {string} userId - L'ID de l'utilisateur dont les notifications seront marquées comme lues.
  */
+
 export const markNotificationsAsRead = async (userId) => {
   try {
     // Mettre à jour le champ "read" pour les notifications de l'utilisateur

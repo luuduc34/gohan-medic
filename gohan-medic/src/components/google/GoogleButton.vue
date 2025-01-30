@@ -19,7 +19,6 @@ export default {
           // Redirigez ou actualisez l'utilisateur connecté
           console.log("Connexion réussie avec Google :", result.user);
           // Redirection vers la page d'accueil
-          this.$router.push("/");
         } else {
           alert("Erreur lors de la connexion avec Google : " + result.error);
         }
