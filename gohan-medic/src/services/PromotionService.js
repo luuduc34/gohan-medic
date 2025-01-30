@@ -297,11 +297,56 @@ export async function updatePromotion(promotionId, updatedData) {
 
 // Update des validité des promotions
 export async function updatePromotionValidity() {
-  try {
-    const { error } = await supabase.rpc("deactivate_expired_promotions");
+  const currentDate = new Date().toISOString(); // Date actuelle au format ISO
 
-    if (error) {
-      console.error("Erreur lors de la mise à jour des promotions expirées :", error);
+  try {
+    // Étape 1 : Récupérer les promotions expirées
+    const { data: expiredPromotions, error: expiredError } = await supabase
+      .from("promotion")
+      .select("id") // Récupère uniquement les IDs des promotions
+      .lt("end_at", currentDate) // Filtre les promotions expirées (end_at < currentDate)
+      .eq("is_valid", true); // Seules les promotions encore valides
+
+    if (expiredError) {
+      console.error("Erreur lors de la récupération des promotions expirées :", expiredError);
+      return;
+    }
+
+    if (expiredPromotions.length > 0) {
+      const expiredPromotionIds = expiredPromotions.map((promo) => promo.id);
+
+      // Étape 2 : Désactiver les promotions expirées
+      const { error: updatePromotionError } = await supabase
+        .from("promotion")
+        .update({ is_valid: false }) // Met is_valid à false
+        .in("id", expiredPromotionIds); // Filtre par les IDs des promotions expirées
+
+      if (updatePromotionError) {
+        console.error("Erreur lors de la mise à jour des promotions expirées :", updatePromotionError);
+      }
+
+      // Étape 3 : Récupérer les produits liés aux promotions expirées
+      const { data: promotionProducts, error: productError } = await supabase
+        .from("promotion_product")
+        .select("product_id") // Récupère les IDs des produits
+        .in("promotion_id", expiredPromotionIds); // Filtre par les IDs des promotions expirées
+
+      if (productError) {
+        console.error("Erreur lors de la récupération des produits :", productError);
+        return;
+      }
+
+      const productIds = promotionProducts.map((p) => p.product_id);
+
+      // Étape 4 : Désactiver les promotions pour les produits concernés
+      const { error: updateProductError } = await supabase
+        .from("product")
+        .update({ is_promotion: false }) // Met is_promotion à false
+        .in("id", productIds); // Filtre par les IDs des produits concernés
+
+      if (updateProductError) {
+        console.error("Erreur lors de la mise à jour des produits :", updateProductError);
+      }
     }
   } catch (error) {
     console.error("Erreur critique lors de la mise à jour des validités :", error);
