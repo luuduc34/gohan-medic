@@ -81,40 +81,41 @@ export default {
   name: "NavBar",
   data() {
     return {
-      showCatalogDropdown: false,
-      showGestionDropdown: false,
-      showOrdonnanceDropdown: false,
-      isOpen: false,
-      screenWidth: window.innerWidth,
-      categories: [],
-      pendingCount: 0,
-      notificationCount: 0,
-      isCatalogDropdownOpen: false, // Ajout d'une variable pour contrôler l'état de l'ouverture en mobile
-      isGestionDropdownOpen: false, // Ajout d'une variable pour l'admin
-      isOrdonnanceDropdownOpen: false, // Ajout d'une variable pour l'utilisateur
+      showCatalogDropdown: false, // Gère l'affichage du menu déroulant du catalogue
+      showGestionDropdown: false, // Gère l'affichage du menu déroulant de gestion (admin)
+      showOrdonnanceDropdown: false, // Gère l'affichage du menu déroulant des ordonnances (utilisateur)
+      isOpen: false, // État du menu mobile
+      screenWidth: window.innerWidth, // Stocke la largeur de l'écran pour adapter l'affichage
+      categories: [], // Liste des catégories de produits
+      pendingCount: 0, // Nombre d'ordonnances en attente pour l'admin
+      notificationCount: 0, // Compteur de notifications (non utilisé pour l’instant)
+      isCatalogDropdownOpen: false, // État du menu catalogue en version mobile
+      isGestionDropdownOpen: false, // État du menu gestion en version mobile
+      isOrdonnanceDropdownOpen: false, // État du menu ordonnance en version mobile
     };
   },
   computed: {
     userStore() {
-      return useUserStore();
+      return useUserStore(); // Récupère le store utilisateur
     },
     isAuthenticated() {
-      return this.userStore.isAuthenticated;
+      return this.userStore.isAuthenticated; // Vérifie si l'utilisateur est connecté
     },
     isAdmin() {
-      return this.userStore.isAdmin;
+      return this.userStore.isAdmin; // Vérifie si l'utilisateur est un admin
     },
     isMobile() {
-      return this.screenWidth < 1200; // Détecte si l'écran est en mode mobile
+      return this.screenWidth < 1200; // Détermine si l'affichage est en mode mobile
     },
   },
   methods: {
+    // Récupère le nombre d'ordonnances en attente si l'utilisateur est un admin
     async fetchPendingPrescriptions() {
       try {
         if (this.isAdmin) {
           const count = await fetchPendingPrescriptionsCount();
           console.log("Nombre d'ordonnances en attente (NavBar) :", count);
-          this.pendingCount = count || 0; // Assurez-vous que la valeur est définie
+          this.pendingCount = count || 0;
         }
       } catch (error) {
         console.error(
@@ -124,16 +125,19 @@ export default {
       }
     },
 
+    // Ouvre/Ferme le menu mobile
     toggleMenu() {
       this.isOpen = !this.isOpen;
       this.closeAllDropdowns();
     },
 
+    // Ferme complètement le menu mobile
     closeMenu() {
       this.isOpen = false;
       this.closeAllDropdowns();
     },
 
+    // Ouvre/Ferme le menu déroulant du catalogue
     openCatalogMenu() {
       if (this.showCatalogDropdown) {
         this.showCatalogDropdown = !this.showCatalogDropdown;
@@ -143,6 +147,7 @@ export default {
       }
     },
 
+    // Ouvre/Ferme le menu déroulant de gestion (admin)
     openGestionMenu() {
       if (this.showGestionDropdown) {
         this.showGestionDropdown = !this.showGestionDropdown;
@@ -152,6 +157,7 @@ export default {
       }
     },
 
+    // Ouvre/Ferme le menu déroulant des ordonnances
     openOrdonnanceMenu() {
       if (this.showOrdonnanceDropdown) {
         this.showOrdonnanceDropdown = !this.showOrdonnanceDropdown;
@@ -161,66 +167,92 @@ export default {
       }
     },
 
+    // Ferme tous les menus déroulants
     closeAllDropdowns() {
       this.showCatalogDropdown = false;
       this.showGestionDropdown = false;
       this.showOrdonnanceDropdown = false;
     },
 
+    // Récupère les catégories de produits
     async fetchCategories() {
       const categories = await fetchCategoryProducts();
       this.categories = categories;
     },
+
+    // Redirige vers une catégorie spécifique et ferme le menu
     handleCategoryClick(categoryId) {
       this.$router.push({ name: "CataloguePage", query: { category: categoryId } });
       this.closeMenu();
     },
+
+    // Met à jour la largeur de l'écran pour ajuster l'affichage
     updateScreenWidth() {
       this.screenWidth = window.innerWidth;
       if (this.screenWidth >= 1200) {
         this.isOpen = false;
       }
     },
+
+    // Redirige vers la page Catalogue (version desktop)
     goToCat() {
       if (!this.isMobile) {
         this.$router.push("/Catalogue");
         this.closeMenu();
       }
     },
+
+    // Redirige vers la page Catalogue (version mobile)
     goToCatMob() {
       this.$router.push("/Catalogue");
       this.closeMenu();
     },
+
+    // Redirige vers la page des promotions
     goToProm() {
       this.$router.push("/Promotion");
       this.closeMenu();
     },
+
+    // Redirige vers l'upload d'ordonnance
     goToPrescriptionUpload() {
       this.$router.push("/ordonnance/upload");
       this.closeMenu();
     },
+
+    // Redirige vers la liste des ordonnances
     goToPrescriptionList() {
       this.$router.push("/ordonnance");
       this.closeMenu();
     },
+
+    // Redirige vers la gestion des produits
     goToGestionProduits() {
       this.$router.push("/Gestion/Produits");
       this.closeMenu();
     },
+
+    // Redirige vers la gestion des promotions
     goToGestionPromotions() {
       this.$router.push("/Gestion/Promotions");
       this.closeMenu();
     },
+
+    // Redirige vers la gestion du stock
     goToGestionStock() {
       this.$router.push("/Gestion/Stock");
       this.closeMenu();
     },
+
+    // Redirige vers la gestion des ordonnances
     goToGestionOrdonnances() {
       this.$router.push("/Gestion/Ordonnances");
       this.closeMenu();
     },
   },
+
   created() {
+    // Écoute les mises à jour du nombre d'ordonnances en attente via un événement global
     window.addEventListener("updatePendingCount", (event) => {
       if (event.detail !== undefined) {
         this.pendingCount = event.detail;
@@ -228,18 +260,23 @@ export default {
       console.log("Notifications mises à jour via événement global :", this.pendingCount);
     });
 
+    // Écoute le redimensionnement de l'écran pour adapter l'affichage
     window.addEventListener("resize", this.updateScreenWidth);
+
+    // Charge les catégories et le nombre d'ordonnances en attente au démarrage
     this.fetchCategories();
-    this.fetchPendingPrescriptions(); // Chargement initial
+    this.fetchPendingPrescriptions();
   },
 
   watch: {
+    // Recharge le nombre d'ordonnances en attente à chaque changement de page
     $route() {
-      // Recharge le nombre d'ordonnances en attente à chaque changement de route
       this.fetchPendingPrescriptions();
     },
   },
+
   beforeUnmount() {
+    // Supprime les écouteurs d'événements au démontage du composant
     window.removeEventListener("updatePendingCount", this.fetchPendingPrescriptions);
     window.removeEventListener("resize", this.updateScreenWidth);
   },

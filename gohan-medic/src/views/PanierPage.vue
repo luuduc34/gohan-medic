@@ -215,6 +215,7 @@ export default {
     onPaymentSuccess() {
       this.showPaymentModal = false; // Ferme la modal de paiement
       this.showSuccessModal = true; // Ouvre la modal de succès
+      this.basketStore.loadBasket();
     },
     closeSuccessModal() {
       this.showSuccessModal = false; // Ferme la modal de succès

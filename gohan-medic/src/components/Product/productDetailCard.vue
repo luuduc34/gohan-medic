@@ -83,10 +83,10 @@
 </template>
 
 <script>
-import { useBasketStore } from "@/stores/BasketStore";
+import { useBasketStore } from "@/stores/BasketStore"; // Import du store pour gérer le panier
 
 export default {
-  name: "ProductDetailCard",
+  name: "ProductDetailCard", // Nom du composant
   props: {
     product: {
       type: Object,
@@ -94,35 +94,40 @@ export default {
       default: () => ({
         id: null,
         name: "Nom du produit",
-        image: "https://via.placeholder.com/300x200",
-        price: 0,
-        promotion: null,
-        stock: 10,
+        image: "https://via.placeholder.com/300x200", // Image par défaut
+        price: 0, // Prix par défaut
+        promotion: null, // Informations sur la promotion (si applicable)
+        stock: 10, // Stock par défaut
       }),
     },
   },
   data() {
     return {
-      selectedQuantity: 1,
+      selectedQuantity: 1, // Quantité sélectionnée par l'utilisateur
     };
   },
   methods: {
     addToCart() {
-      const basketStore = useBasketStore();
+      const basketStore = useBasketStore(); // Accès au store du panier
+
+      // Vérifie si le produit est en promotion et applique le prix réduit si disponible
       const priceToUse =
         this.product.is_promotion && this.product.promotion?.discountedPrice
           ? this.product.promotion.discountedPrice
           : this.product.price;
 
+      // Création de l'objet produit à ajouter au panier
       const productToAdd = {
         id: this.product.id,
         name: this.product.name,
-        image: this.product.picture,
+        image: this.product.picture, // Erreur potentielle ici, devrait être `this.product.image`
         price: priceToUse,
         quantity: this.selectedQuantity,
       };
 
-      basketStore.addItem(productToAdd);
+      basketStore.addItem(productToAdd); // Ajout du produit au panier
+
+      // Affichage d'une alerte pour informer l'utilisateur
       alert(`${this.selectedQuantity} x ${this.product.name} ajouté(s) au panier !`);
     },
   },

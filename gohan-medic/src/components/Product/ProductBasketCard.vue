@@ -37,7 +37,7 @@
 
 <script>
 export default {
-  name: "ProductBasketCard",
+  name: "ProductBasketCard", // Nom du composant
   props: {
     product: {
       type: Object,
@@ -48,26 +48,30 @@ export default {
         image: "https://via.placeholder.com/100x100",
         price: 0,
         quantity: 1,
-      }),
+      }), // Valeurs par défaut si aucun produit n'est fourni
     },
   },
   computed: {
     subTotal() {
+      // Calcule le sous-total en multipliant le prix par la quantité
       return this.product.price * this.product.quantity;
     },
   },
   methods: {
     decreaseQuantity() {
+      // Diminue la quantité du produit si elle est supérieure à 1
       if (this.product.quantity > 1) {
         this.$emit("update-quantity", {
           id: this.product.id,
           quantity: this.product.quantity - 1,
         });
       } else {
+        // Si la quantité est 1, déclenche un événement pour supprimer le produit du panier
         this.$emit("request-remove", this.product.id);
       }
     },
     increaseQuantity() {
+      // Augmente la quantité du produit tant qu'elle est inférieure à 9
       if (this.product.quantity < 9) {
         this.$emit("update-quantity", {
           id: this.product.id,

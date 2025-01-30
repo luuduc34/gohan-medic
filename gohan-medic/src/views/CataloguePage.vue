@@ -33,8 +33,8 @@ export default {
   },
   data() {
     return {
-      searchQuery: "", // Requête de recherche
-      products: [], // Liste des produits
+      searchQuery: "", // Stocke la requête de recherche
+      products: [], // Liste des produits affichés
     };
   },
   async created() {
@@ -44,18 +44,18 @@ export default {
       let fetchedProducts;
 
       if (categoryId) {
-        fetchedProducts = await fetchProductByIdCategory(categoryId);
+        fetchedProducts = await fetchProductByIdCategory(categoryId); // Récupère les produits d'une catégorie spécifique
       } else {
-        fetchedProducts = await fetchProducts();
+        fetchedProducts = await fetchProducts(); // Récupère tous les produits
       }
 
       const promotionsByProduct = await fetchPromotionsForMultipleProducts(
-        fetchedProducts.map((product) => product.id)
+        fetchedProducts.map((product) => product.id) // Récupère les promotions associées aux produits
       );
 
       this.products = fetchedProducts.map((product) => {
         const promotion = promotionsByProduct[product.id];
-        return promotion ? { ...product, promotion } : product;
+        return promotion ? { ...product, promotion } : product; // Ajoute la promotion si disponible
       });
     } catch (error) {
       console.error("Erreur lors du chargement des produits :", error);
@@ -63,16 +63,17 @@ export default {
   },
   computed: {
     filteredProducts() {
-      return this.products.filter((product) =>
-        product.name.toLowerCase().includes(this.searchQuery.toLowerCase())
+      return this.products.filter(
+        (product) => product.name.toLowerCase().includes(this.searchQuery.toLowerCase()) // Filtrage des produits par nom
       );
     },
   },
   watch: {
-    "$route.query.category": "loadProducts",
+    "$route.query.category": "loadProducts", // Met à jour les produits si la catégorie change
   },
   methods: {
     async loadProducts() {
+      // Fonction presque identique à created(), pourrait être factorisée
       const categoryId = this.$route.query.category;
 
       try {
@@ -98,8 +99,8 @@ export default {
     },
     openProductDetail(product) {
       const productStore = useProductStore();
-      productStore.setProduct(product);
-      this.$router.push({ name: "ProductDetail" });
+      productStore.setProduct(product); // Stocke le produit sélectionné
+      this.$router.push({ name: "ProductDetail" }); // Redirige vers la page détail du produit
     },
   },
 };

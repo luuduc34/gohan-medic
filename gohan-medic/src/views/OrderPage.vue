@@ -29,7 +29,6 @@ export default {
       orders: userOrderStore.orders,
       handleViewDetails(id) {
         console.log(`Afficher les détails pour la commande ID ${id}`);
-        // Ajoutez ici la logique pour afficher les détails de la commande
       },
     };
   },
